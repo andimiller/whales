@@ -36,7 +36,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
   "Docker" must "successfully spin up nginx" in {
     val resources = for {
       docker <- Docker[IO]
-      nginx  <- docker(DockerImage("nginx", "latest"))
+      nginx  <- docker("nginx", "latest")
       _      <- nginx.waitForPort[IO](80)
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (client, nginx)
@@ -55,4 +55,5 @@ class DockerSpec extends FlatSpec with MustMatchers {
       c.expect[String](s"http://${n.ipAddress}/index.txt")
     }.unsafeRunSync() must equal("I'm a resource which got mounted into nginx")
   }
+  
 }

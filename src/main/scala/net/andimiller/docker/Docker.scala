@@ -28,13 +28,14 @@ object Docker {
   }
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5): Resource[F, Unit] =
+    def waitForPort[F[_] : Sync : Timer](port: Int, backoffs: Int = 5): Resource[F, Unit] =
       Resource.liftF(
         Docker.waitTcp[F](container.networkSettings().ipAddress(), port).attemptT.recover {
           case e: ConnectException =>
             throw new ConnectException(s"Unable to connect to ${creation.name}:${creation.version} on port $port: ${e.getMessage}")
         }.value.rethrow
       )
+
     def ipAddress: String = container.networkSettings().ipAddress()
   }
 
@@ -48,13 +49,25 @@ object Docker {
     }
   }
 
-  def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5): F[Unit] =
-    Stream.retry(Sync[F].delay { new Socket(host, port) }, delay = 1 second, nextDelay = _ * 2, maxAttempts = backoffs).compile.drain
+  def waitTcp[F[_] : Sync : Timer](host: String, port: Int, backoffs: Int = 5): F[Unit] =
+    Stream.retry(Sync[F].delay {
+      new Socket(host, port)
+    }, delay = 1 second, nextDelay = _ * 2, maxAttempts = backoffs).compile.drain
 
-  def apply[F[_]: ConcurrentEffect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
+  def apply[F[_] : ConcurrentEffect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
 
   case class DockerClient[F[_]](docker: DefaultDockerClient) {
-    def apply(image: DockerImage)(implicit F: ConcurrentEffect[F]) = Resource.make(
+
+    def apply(name: String,
+              version: String,
+              command: Option[String] = None,
+              ports: List[Int] = List.empty,
+              env: Map[String, String] = Map.empty,
+              volumes: Map[String, String] = Map.empty
+             )(implicit F: ConcurrentEffect[F]): Resource[F, DockerContainer] =
+      apply(DockerImage(name, version, command, ports, env, volumes))
+
+    def apply(image: DockerImage)(implicit F: ConcurrentEffect[F]): Resource[F, DockerContainer] = Resource.make(
       F.delay {
         val container = ContainerConfig.builder()
           .hostConfig(
