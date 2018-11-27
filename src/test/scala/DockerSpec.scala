@@ -55,5 +55,51 @@ class DockerSpec extends FlatSpec with MustMatchers {
       c.expect[String](s"http://${n.ipAddress}/index.txt")
     }.unsafeRunSync() must equal("I'm a resource which got mounted into nginx")
   }
-  
+  "Docker" must "do benthos chains" in {
+    val resources = for {
+      docker <- Docker[IO]
+      benthos1 <- docker("jeffail/benthos", "latest", env = Map(
+        "INPUT_TYPE" -> "http_server",
+        "OUTPUT_TYPE" -> "http_server",
+        "BUFFER_TYPE" -> "memory",
+      ), ports = List(4195))
+      _ <- benthos1.waitForPort[IO](4195)
+      benthos2 <- docker("jeffail/benthos", "latest", env = Map(
+        "INPUT_TYPE" -> "http_client",
+        "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos1.ipAddress}:4195/benthos/get",
+        "OUTPUT_TYPE" -> "http_server",
+        "BUFFER_TYPE" -> "memory",
+      ), ports = List(4195))
+      _ <- benthos2.waitForPort[IO](4195)
+      benthos3 <- docker("jeffail/benthos", "latest", env = Map(
+        "INPUT_TYPE" -> "http_client",
+        "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos2.ipAddress}:4195/benthos/get",
+        "OUTPUT_TYPE" -> "http_server",
+        "BUFFER_TYPE" -> "memory",
+      ), ports = List(4195))
+      _ <- benthos3.waitForPort[IO](4195)
+      benthos4 <- docker("jeffail/benthos", "latest", env = Map(
+        "INPUT_TYPE" -> "http_client",
+        "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos3.ipAddress}:4195/benthos/get",
+        "OUTPUT_TYPE" -> "http_server",
+        "BUFFER_TYPE" -> "memory",
+      ), ports = List(4195))
+      _ <- benthos4.waitForPort[IO](4195)
+      benthos5 <- docker("jeffail/benthos", "latest", env = Map(
+        "INPUT_TYPE" -> "http_client",
+        "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos4.ipAddress}:4195/benthos/get",
+        "OUTPUT_TYPE" -> "http_server",
+        "BUFFER_TYPE" -> "memory",
+      ), ports = List(4195))
+      _ <- benthos5.waitForPort[IO](4195)
+      client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
+    } yield (benthos1, benthos5, client)
+    resources.use { case (benthos1, benthos5, client) =>
+      for {
+        _ <- client.expect[String](Request[IO](Method.POST, Uri.unsafeFromString(s"http://${benthos1.ipAddress}:4195/benthos/post")).withEntity[String]("hello world"))
+        res <- client.expect[String](Request[IO](Method.GET, Uri.unsafeFromString(s"http://${benthos5.ipAddress}:4195/benthos/get")))
+      } yield (res)
+    }.unsafeRunSync() must equal("hello world")
+  }
+
 }
