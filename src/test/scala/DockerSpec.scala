@@ -8,10 +8,10 @@ import cats._
 import cats.implicits._
 import cats.data._
 import cats.effect._
+import cats.effect.implicits._
 import cats.effect.internals.IOContextShift
 import net.andimiller.docker.Docker.DockerImage
 import net.andimiller.docker._
-import net.andimiller.docker.UnsafeResourceSyntax._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.util.CaseInsensitiveString
 import org.scalatest.{FlatSpec, MustMatchers, WordSpec}
@@ -36,8 +36,8 @@ class DockerSpec extends FlatSpec with MustMatchers {
   "Docker" must "successfully spin up nginx" in {
     val resources = for {
       docker <- Docker[IO]
-      nginx  <- docker("nginx", "latest")
-      _      <- nginx.waitForPort[IO](80)
+      nginx <- docker("nginx", "latest")
+      _ <- nginx.waitForPort[IO](80)
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (client, nginx)
     resources.use { case (c, n) =>
@@ -48,7 +48,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
     val webroot = new File("src/test/resources/webroot/").getAbsolutePath
     val resources = for {
       docker <- Docker[IO]
-      nginx  <- docker(DockerImage("nginx", "latest", volumes = Map(webroot -> "/usr/share/nginx/html")))
+      nginx <- docker(DockerImage("nginx", "latest", volumes = Map(webroot -> "/usr/share/nginx/html")))
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (client, nginx)
     resources.use { case (c, n) =>
