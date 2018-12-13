@@ -31,6 +31,9 @@ micrositeAuthor := "Andi Miller"
 
 micrositeOrganizationHomepage := "http://andimiller.net/"
 
+micrositeGithubOwner := "andimiller"
+micrositeGithubRepo := "docker-cats-effect"
+
 
 
 
