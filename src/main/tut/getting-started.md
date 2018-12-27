@@ -11,19 +11,19 @@ insert it here once I've published it to bintray
 
 Make sure you have the standard cats imports.
 
-```tut
+```tut:silent
 import cats._, cats.implicits._
 ```
 
 And the main cats-effect import.
 
-```tut
+```tut:silent
 import cats.effect._
 ```
 
 Then you can also import this library.
 
-```tut
+```tut:silent
 import net.andimiller.docker._
 ```
 
@@ -32,13 +32,13 @@ import net.andimiller.docker._
 
 To make a docker client you simply call the Docker object with your effect type (see cats-effect to learn more about effect types).
 
-```tut
+```tut:silent
 Docker[IO]
 ```
 
 This client itself is a resource, (since it internally keeps a spotify docker client with a pool), so it's easiest if we use it in a for comprehension.
 
-```tut
+```tut:silent
 for {
   docker <- Docker[IO]
   nginx <- docker("nginx", "latest")
@@ -49,7 +49,7 @@ The client has an apply method which takes arguments on what kind of docker imag
 
 You can also pass in a DockerImage if you'd rather work with the case class.
 
-```tut
+```tut:silent
 import net.andimiller.docker.Docker.DockerImage
 for {
   docker <- Docker[IO]
@@ -66,7 +66,7 @@ implicit val timer = IO.timer(scala.concurrent.ExecutionContext.global)
 implicit val sync = Sync[IO]
 ```
 
-```tut
+```tut:silent
 for {
   docker <- Docker[IO]
   nginx <- docker("nginx", "latest")
