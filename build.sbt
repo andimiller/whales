@@ -12,7 +12,7 @@ scalaVersion := "2.12.8"
 scalacOptions += "-Ypartial-unification"
 
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "cats-effect" % "1.1.0-M1",
+  "org.typelevel" %% "cats-effect" % "1.1.0",
   "co.fs2" %% "fs2-core" % "1.0.0",
   "co.fs2" %% "fs2-io" % "1.0.0",
   "com.spotify" % "docker-client" % "8.14.4",

@@ -28,9 +28,9 @@ object Docker {
   }
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_] : Sync : Timer](port: Int, backoffs: Int = 5): Resource[F, Unit] =
+    def waitForPort[F[_] : Sync : Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, Unit] =
       Resource.liftF(
-        Docker.waitTcp[F](container.networkSettings().ipAddress(), port).attemptT.recover {
+        Docker.waitTcp[F](container.networkSettings().ipAddress(), port, backoffs = backoffs, delay = delay).attemptT.recover {
           case e: ConnectException =>
             throw new ConnectException(s"Unable to connect to ${creation.name}:${creation.version} on port $port: ${e.getMessage}")
         }.value.rethrow
@@ -49,10 +49,10 @@ object Docker {
     }
   }
 
-  def waitTcp[F[_] : Sync : Timer](host: String, port: Int, backoffs: Int = 5): F[Unit] =
+  def waitTcp[F[_] : Sync : Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[Unit] =
     Stream.retry(Sync[F].delay {
       new Socket(host, port)
-    }, delay = 1 second, nextDelay = _ * 2, maxAttempts = backoffs).compile.drain
+    }, delay = delay, nextDelay = _ * 2, maxAttempts = backoffs).compile.drain
 
   def apply[F[_] : Effect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
 

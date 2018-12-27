@@ -29,7 +29,9 @@ class DockerSpec extends FlatSpec with MustMatchers {
       p.shutdown()
     })
 
-  implicit val cs = IOContextShift.global
+  implicit val is = Sync[IO]
+
+  implicit val cs = IO.contextShift(ExecutionContext.global)
   implicit val ce = ConcurrentEffect[IO]
   implicit val timer = IO.timer(ExecutionContext.global)
 
