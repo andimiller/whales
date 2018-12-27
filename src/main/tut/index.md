@@ -10,6 +10,7 @@ technologies:
 
 # Overview
 
-cats-effect-docker is a package which makes it easy to use docker with cats-effect.
+Whales is a library which gives you a cats-friendly interface for Docker.
 
+It's intended to be used for integration testing but you can use it for whatever you want.
 

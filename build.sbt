@@ -1,6 +1,6 @@
 enablePlugins(MicrositesPlugin)
 
-name := "docker-cats-effect"
+name := "whales"
 
 version := "0.1"
 
@@ -23,9 +23,9 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
 )
 
-micrositeName := "Cats Effect Docker"
+micrositeName := "Whales"
 
-micrositeDescription := "A Docker Client for use with cats-effect"
+micrositeDescription := "Cats-based Docker Client"
 
 micrositeAuthor := "Andi Miller"
 
