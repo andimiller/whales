@@ -47,6 +47,8 @@ micrositeBaseUrl := "/whales"
 
 micrositeHomepage := "http://andimiller.github.io/andimiller/"
 
+micrositeDocumentationUrl := "/getting-started.html"
+
 micrositePalette := Map(
         "brand-primary"     -> "#80CBC4",
         "brand-secondary"   -> "#00796B",
