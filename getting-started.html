@@ -10,64 +10,54 @@
 
 <p>Make sure you have the standard cats imports.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">cats._</span><span class="o">,</span> <span class="n">cats</span><span class="o">.</span><span class="n">implicits</span><span class="o">.</span><span class="k">_</span>
-<span class="k">import</span> <span class="nn">cats._</span>
-<span class="k">import</span> <span class="nn">cats.implicits._</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">cats._</span><span class="o">,</span> <span class="n">cats</span><span class="o">.</span><span class="n">implicits</span><span class="o">.</span><span class="k">_</span>
 </code></pre></div></div>
 
 <p>And the main cats-effect import.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">cats.effect._</span>
-<span class="k">import</span> <span class="nn">cats.effect._</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">cats.effect._</span>
 </code></pre></div></div>
 
 <p>Then you can also import this library.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">net.andimiller.docker._</span>
-<span class="k">import</span> <span class="nn">net.andimiller.docker._</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">net.andimiller.docker._</span>
 </code></pre></div></div>
 
 <h1 id="docker-client">Docker client</h1>
 
 <p>To make a docker client you simply call the Docker object with your effect type (see cats-effect to learn more about effect types).</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
-<span class="n">res0</span><span class="k">:</span> <span class="kt">cats.effect.Resource</span><span class="o">[</span><span class="kt">cats.effect.IO</span>,<span class="kt">net.andimiller.docker.Docker.DockerClient</span><span class="o">[</span><span class="kt">cats.effect.IO</span><span class="o">]]</span> <span class="k">=</span> <span class="nc">Bind</span><span class="o">(</span><span class="nc">Allocate</span><span class="o">(&lt;</span><span class="n">function1</span><span class="o">&gt;),</span><span class="n">net</span><span class="o">.</span><span class="n">andimiller</span><span class="o">.</span><span class="n">docker</span><span class="o">.</span><span class="nc">Docker$$$Lambda$6089</span><span class="o">/</span><span class="mi">1132717954</span><span class="k">@</span><span class="mi">2</span><span class="n">bb2cee6</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
 </code></pre></div></div>
 
 <p>This client itself is a resource, (since it internally keeps a spotify docker client with a pool), so it’s easiest if we use it in a for comprehension.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">for</span> <span class="o">{</span>
-     <span class="o">|</span>   <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
-     <span class="o">|</span>   <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">)</span>
-     <span class="o">|</span> <span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
-<span class="n">res1</span><span class="k">:</span> <span class="kt">cats.effect.Resource</span><span class="o">[</span><span class="kt">cats.effect.IO</span>,<span class="kt">net.andimiller.docker.Docker.DockerContainer</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Bind</span><span class="o">(</span><span class="nc">Bind</span><span class="o">(</span><span class="nc">Allocate</span><span class="o">(&lt;</span><span class="n">function1</span><span class="o">&gt;),</span><span class="n">net</span><span class="o">.</span><span class="n">andimiller</span><span class="o">.</span><span class="n">docker</span><span class="o">.</span><span class="nc">Docker$$$Lambda$6089</span><span class="o">/</span><span class="mi">1132717954</span><span class="k">@</span><span class="mi">158</span><span class="n">b3478</span><span class="o">),</span><span class="nc">$$Lambda$6191</span><span class="o">/</span><span class="mi">648332006</span><span class="nd">@fba10d1</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="o">{</span>
+  <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
+  <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">)</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
 </code></pre></div></div>
 
 <p>The client has an apply method which takes arguments on what kind of docker image we want, if you’d like to see all available options see the <code class="highlighter-rouge">DockerImage</code> class, and the default parameters on the apply method.</p>
 
 <p>You can also pass in a DockerImage if you’d rather work with the case class.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">net.andimiller.docker.Docker.DockerImage</span>
-<span class="k">import</span> <span class="nn">net.andimiller.docker.Docker.DockerImage</span>
-
-<span class="n">scala</span><span class="o">&gt;</span> <span class="k">for</span> <span class="o">{</span>
-     <span class="o">|</span>   <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
-     <span class="o">|</span>   <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="nc">DockerImage</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">))</span>
-     <span class="o">|</span> <span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
-<span class="n">res2</span><span class="k">:</span> <span class="kt">cats.effect.Resource</span><span class="o">[</span><span class="kt">cats.effect.IO</span>,<span class="kt">net.andimiller.docker.Docker.DockerContainer</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Bind</span><span class="o">(</span><span class="nc">Bind</span><span class="o">(</span><span class="nc">Allocate</span><span class="o">(&lt;</span><span class="n">function1</span><span class="o">&gt;),</span><span class="n">net</span><span class="o">.</span><span class="n">andimiller</span><span class="o">.</span><span class="n">docker</span><span class="o">.</span><span class="nc">Docker$$$Lambda$6089</span><span class="o">/</span><span class="mi">1132717954</span><span class="k">@</span><span class="mi">49</span><span class="n">ef5159</span><span class="o">),</span><span class="nc">$$Lambda$6198</span><span class="o">/</span><span class="mi">994888164</span><span class="k">@</span><span class="mf">27f</span><span class="n">b14f1</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">net.andimiller.docker.Docker.DockerImage</span>
+<span class="k">for</span> <span class="o">{</span>
+  <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
+  <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="nc">DockerImage</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">))</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
 </code></pre></div></div>
 
 <h1 id="waiting-for-containers-to-come-up">Waiting for containers to come up</h1>
 
 <p>The main way to wait for a container right now is waiting for a TCP socket to be bound, this is done like so:</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">for</span> <span class="o">{</span>
-     <span class="o">|</span>   <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
-     <span class="o">|</span>   <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">)</span>
-     <span class="o">|</span>   <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">nginx</span><span class="o">.</span><span class="n">waitForPort</span><span class="o">(</span><span class="mi">80</span><span class="o">)</span>
-     <span class="o">|</span> <span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
-<span class="n">res3</span><span class="k">:</span> <span class="kt">cats.effect.Resource</span><span class="o">[</span><span class="kt">cats.effect.IO</span>,<span class="kt">net.andimiller.docker.Docker.DockerContainer</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Bind</span><span class="o">(</span><span class="nc">Bind</span><span class="o">(</span><span class="nc">Allocate</span><span class="o">(&lt;</span><span class="n">function1</span><span class="o">&gt;),</span><span class="n">net</span><span class="o">.</span><span class="n">andimiller</span><span class="o">.</span><span class="n">docker</span><span class="o">.</span><span class="nc">Docker$$$Lambda$6089</span><span class="o">/</span><span class="mi">1132717954</span><span class="k">@</span><span class="mi">74</span><span class="n">bc8f7d</span><span class="o">),</span><span class="nc">$$Lambda$6214</span><span class="o">/</span><span class="mi">1761121280</span><span class="k">@</span><span class="mf">2d</span><span class="n">f996e1</span><span class="o">)</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="o">{</span>
+  <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
+  <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">)</span>
+  <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">nginx</span><span class="o">.</span><span class="n">waitForPort</span><span class="o">(</span><span class="mi">80</span><span class="o">)</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
 </code></pre></div></div>
 
 <p>This will attempt to acquire an open TCP socket to the specified port on that container and will do an exponential backoff, this backoff can be tuned with the optional parameters, such as <code class="highlighter-rouge">backoffs</code> which is defaulted to <code class="highlighter-rouge">5</code>.</p>
