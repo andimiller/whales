@@ -9,6 +9,8 @@ version := "0.1"
 
 scalaVersion := "2.12.8"
 
+licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
+
 scalacOptions += "-Ypartial-unification"
 
 libraryDependencies ++= Seq(
