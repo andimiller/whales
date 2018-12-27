@@ -1,6 +1,8 @@
 enablePlugins(MicrositesPlugin)
 enablePlugins(TutPlugin)
 
+organization := "net.andimiller"
+
 name := "whales"
 
 version := "0.1"
