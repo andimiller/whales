@@ -32,7 +32,13 @@ micrositeAuthor := "Andi Miller"
 micrositeOrganizationHomepage := "http://andimiller.net/"
 
 micrositeGithubOwner := "andimiller"
-micrositeGithubRepo := "docker-cats-effect"
+micrositeGithubRepo := "whales"
+
+micrositeUrl := "http://andimiller.github.io/"
+
+micrositeBaseUrl := "/whales"
+
+micrositeHomepage := "http://andimiller.github.io/andimiller/"
 
 
 
