@@ -39,7 +39,7 @@ object Docker {
     def ipAddress: String = container.networkSettings().ipAddress()
   }
 
-  def client[F[_]](implicit F: ConcurrentEffect[F]) = Resource.make(
+  def client[F[_]](implicit F: Effect[F]) = Resource.make(
     F.delay {
       DefaultDockerClient.fromEnv().build()
     }
@@ -54,7 +54,7 @@ object Docker {
       new Socket(host, port)
     }, delay = 1 second, nextDelay = _ * 2, maxAttempts = backoffs).compile.drain
 
-  def apply[F[_] : ConcurrentEffect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
+  def apply[F[_] : Effect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
 
   case class DockerClient[F[_]](docker: DefaultDockerClient) {
 
@@ -64,10 +64,10 @@ object Docker {
               ports: List[Int] = List.empty,
               env: Map[String, String] = Map.empty,
               volumes: Map[String, String] = Map.empty
-             )(implicit F: ConcurrentEffect[F]): Resource[F, DockerContainer] =
+             )(implicit F: Effect[F]): Resource[F, DockerContainer] =
       apply(DockerImage(name, version, command, ports, env, volumes))
 
-    def apply(image: DockerImage)(implicit F: ConcurrentEffect[F]): Resource[F, DockerContainer] = Resource.make(
+    def apply(image: DockerImage)(implicit F: Effect[F]): Resource[F, DockerContainer] = Resource.make(
       F.delay {
         val container = ContainerConfig.builder()
           .hostConfig(
