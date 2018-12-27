@@ -2,3 +2,5 @@
 options:
   - title: Getting Started
     url: getting-started.html
+  - title: Waiting
+    url: waiting.html
