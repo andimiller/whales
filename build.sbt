@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-client" % "0.20.0-M1" % Tut,
 )
 
-micrositeName := "Whales"
+micrositeName := "whales"
 
 micrositeDescription := "Cats-based Docker Client"
 
