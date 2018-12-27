@@ -1,4 +1,5 @@
 enablePlugins(MicrositesPlugin)
+enablePlugins(TutPlugin)
 
 name := "whales"
 
@@ -23,6 +24,10 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
 )
 
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-blaze-client" % "0.20.0-M1" % Tut,
+)
+
 micrositeName := "Whales"
 
 micrositeDescription := "Cats-based Docker Client"
@@ -39,6 +44,16 @@ micrositeUrl := "http://andimiller.github.io/"
 micrositeBaseUrl := "/whales"
 
 micrositeHomepage := "http://andimiller.github.io/andimiller/"
+
+micrositePalette := Map(
+        "brand-primary"     -> "#80CBC4",
+        "brand-secondary"   -> "#00796B",
+        "brand-tertiary"    -> "#004D40",
+        "gray-dark"         -> "#453E46",
+        "gray"              -> "#837F84",
+        "gray-light"        -> "#E3E2E3",
+        "gray-lighter"      -> "#F4F3F4",
+        "white-color"       -> "#FFFFFF")
 
 
 

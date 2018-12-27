@@ -16,21 +16,30 @@ It's intended to be used for integration testing but you can use it for whatever
 
 # Example
 
-```scala
-import cats._, cats.implicits._
+```tut
+import cats._, cats.implicits._, cats.effect._
 import net.andimiller.docker._
-import cats.effect._
+import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.client.Client
 
-val nginx = for {
-  docker <- Docker[IO]
-  nginx <- docker("nginx", "latest")
-  _ <- nginx.waitForPort[IO](80)
-} yield nginx
+import scala.concurrent.ExecutionContext
 
-nginx.use { (n) =>
-  IO {
-    println(s"a web server is now available on http://${n.ipAddress}/")
-    readLine()
+object Example extends IOApp {
+  val nginx: Resource[IO, Docker.DockerContainer] = for {
+    docker <- Docker[IO]
+    nginx  <- docker("nginx", "latest")
+    _      <- nginx.waitForPort[IO](80)
+  } yield nginx
+
+  val client: Resource[IO, Client[IO]] = BlazeClientBuilder[IO](ExecutionContext.global).resource
+
+  override def run(args: List[String]): IO[ExitCode] = (nginx, client).bisequence.use { case (n, c) =>
+    for {
+      _      <- IO { println("docker started") }
+      result <- c.expect[String](s"http://${n.ipAddress}/")
+      _      <- IO { println(result) }
+    } yield ExitCode.Success
+
   }
 }
 ```
