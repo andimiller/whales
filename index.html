@@ -4,6 +4,25 @@
 
 <p>It’s intended to be used for integration testing but you can use it for whatever you want.</p>
 
+<h1 id="example">Example</h1>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">cats._</span><span class="o">,</span> <span class="n">cats</span><span class="o">.</span><span class="n">implicits</span><span class="o">.</span><span class="k">_</span>
+<span class="k">import</span> <span class="nn">net.andimiller.docker._</span>
+<span class="k">import</span> <span class="nn">cats.effect._</span>
+
+<span class="k">val</span> <span class="n">nginx</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+  <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
+  <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">)</span>
+  <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">nginx</span><span class="o">.</span><span class="n">waitForPort</span><span class="o">[</span><span class="kt">IO</span><span class="o">](</span><span class="mi">80</span><span class="o">)</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
+
+<span class="n">nginx</span><span class="o">.</span><span class="n">use</span> <span class="o">{</span> <span class="o">(</span><span class="n">n</span><span class="o">)</span> <span class="k">=&gt;</span>
+  <span class="nc">IO</span> <span class="o">{</span>
+    <span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"a web server is now available on http://${n.ipAddress}/"</span><span class="o">)</span>
+    <span class="n">readLine</span><span class="o">()</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
 </div></div></section><section class="technologies"><div class="container"><div class="row">
             <div class="col-md-4"><div class="first-icon-wrapper"></div><h3>cats</h3><p>Cats is pretty cool</p></div>
           
