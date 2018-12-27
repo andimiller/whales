@@ -16,7 +16,7 @@ It's intended to be used for integration testing but you can use it for whatever
 
 # Example
 
-```tut
+```tut:silent
 import cats._, cats.implicits._, cats.effect._
 import net.andimiller.docker._
 import org.http4s.client.blaze.BlazeClientBuilder
