@@ -14,8 +14,11 @@
    viewBox="0 0 256 256"
    version="1.1"
    id="SVGRoot"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)"
-   sodipodi:docname="logo.svg">
+   sodipodi:docname="logo.svg"
+   inkscape:export-filename="/home/andi/workspace/whales/src/main/resources/microsite/img/navbar_brand2x.png"
+   inkscape:export-xdpi="33"
+   inkscape:export-ydpi="33"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -38,6 +41,17 @@
      inkscape:object-paths="true" />
   <defs
      id="defs3737">
+    <inkscape:path-effect
+       effect="mirror_symmetry"
+       start_point="128,43.48433"
+       end_point="128,216.48433"
+       center_point="128,129.98433"
+       id="path-effect4998"
+       is_visible="true"
+       mode="free"
+       discard_orig_path="false"
+       fuse_paths="false"
+       oposite_fuse="false" />
     <inkscape:path-effect
        effect="mirror_symmetry"
        start_point="120,40"
@@ -68,28 +82,33 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
      id="layer1"
      inkscape:groupmode="layer"
-     inkscape:label="Layer 1">
+     inkscape:label="Layer 1"
+     style="display:inline;opacity:1">
     <ellipse
        id="path3837"
        cx="71.73378"
        cy="124.11641"
        rx="19.266224"
        ry="14.883589"
-       style="fill-opacity:1;fill:none;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none" />
+       style="fill:none;fill-opacity:1;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none" />
     <path
-       style="fill:none;stroke:#80cbc4;stroke-width:8;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;"
-       d="M 119,213 C 74.270342,169.55364 39.148442,116.61699 28,40 c 34.432853,9.748374 75.00364,9.851417 92,47 m 1,126 c 44.72966,-43.44636 79.85156,-96.38301 91,-173 -34.43285,9.748374 -75.00364,9.851417 -92,47"
-       id="path4666"
+       style="fill:none;stroke:#80cbc4;stroke-width:15;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 109,250.48433 C 61.946553,148.47123 15.442497,177.47768 17,43.484333 c 44.06222,7.62374 100.30342,17.63676 108,48 l 1,45.999997 m 21,113 c 47.05345,-102.0131 93.5575,-73.00665 92,-206.999997 -44.06222,7.62374 -100.30342,17.63676 -108,48 l -1,45.999997"
+       id="path4996"
        inkscape:connector-curvature="0"
-       inkscape:path-effect="#path-effect4668"
-       inkscape:original-d="M 119,213 C 74.270342,169.55364 39.148442,116.61699 28,40 c 34.432853,9.748374 75.00364,9.851417 92,47"
-       sodipodi:nodetypes="ccc" />
+       sodipodi:nodetypes="cccc"
+       inkscape:path-effect="#path-effect4998"
+       inkscape:original-d="M 109,250.48433 C 61.946553,148.47123 15.442497,177.47768 17,43.484333 c 44.06222,7.62374 100.30342,17.63676 108,48 l 1,45.999997" />
   </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Layer 2"
+     style="opacity:1" />
 </svg>
