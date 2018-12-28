@@ -10,9 +10,18 @@ technologies:
 
 # Overview
 
-Whales is a library which gives you a cats-friendly interface for Docker.
+Whales is a library which gives you a cats-friendly interface for Docker, it lets you manage docker containers with [cats.effect.Resource](https://typelevel.org/cats-effect/datatypes/resource.html).
 
 It's intended to be used for integration testing but you can use it for whatever you want.
+
+# Dependency
+
+
+```scala
+resolvers += Resolver.bintrayRepo("andimiller", "maven")
+libraryDependencies += "net.andimiller" %% "whales" % "0.2"
+```
+
 
 # Example
 
