@@ -11,24 +11,35 @@ licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
 scalacOptions += "-Ypartial-unification"
 
+lazy val catsEffectVersion = "1.1.0"
+lazy val fs2Version = "1.0.0"
+lazy val spotifyDockerVersion = "8.14.4"
+
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "cats-effect" % "1.1.0",
-  "co.fs2" %% "fs2-core" % "1.0.0",
-  "co.fs2" %% "fs2-io" % "1.0.0",
-  "com.spotify" % "docker-client" % "8.14.4",
+  "org.typelevel" %% "cats-effect" % catsEffectVersion,
+  "co.fs2" %% "fs2-core" % fs2Version,
+  "co.fs2" %% "fs2-io" % fs2Version,
+  "com.spotify" % "docker-client" % spotifyDockerVersion,
 )
+
+lazy val http4sVersion = "0.20.0-M1"
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-  "org.http4s" %% "http4s-blaze-client" % "0.20.0-M1" % Test,
-  "org.http4s" %% "http4s-blaze-server" % "0.20.0-M1" % Test,
-  "org.http4s" %% "http4s-dsl" % "0.20.0-M1" % Test,
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion % Test,
+  "org.http4s" %% "http4s-blaze-server" % http4sVersion % Test,
+  "org.http4s" %% "http4s-dsl" % http4sVersion % Test,
   "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
 )
 
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-blaze-client" % "0.20.0-M1" % Tut,
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion % Tut,
 )
+
+scalafmtConfig in ThisBuild := file("scalafmt.conf")
+
+
+// Microsite things
 
 micrositeName := "whales"
 
