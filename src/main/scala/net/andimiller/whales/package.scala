@@ -43,7 +43,7 @@ package object whales {
   }
 
   object Docker {
-    def client[F[_]](implicit F: Effect[F]) =
+    private[whales] def client[F[_]](implicit F: Effect[F]): Resource[F, DefaultDockerClient] =
       Resource.make(
         F.delay {
           DefaultDockerClient.fromEnv().build()
@@ -54,7 +54,7 @@ package object whales {
         }
       }
 
-    def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[Unit] =
+    private[whales] def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[Unit] =
       Stream
         .retry(Sync[F].delay {
           new Socket(host, port)
