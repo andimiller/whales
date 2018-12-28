@@ -4,7 +4,11 @@
 
 <h1 id="dependencies">Dependencies</h1>
 
-<p>insert it here once I’ve published it to bintray</p>
+<p>This library is currently available on my bintray with:</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">resolvers</span> <span class="o">+=</span> <span class="nc">Resolver</span><span class="o">.</span><span class="n">bintrayRepo</span><span class="o">(</span><span class="s">"andimiller"</span><span class="o">,</span> <span class="s">"maven"</span><span class="o">)</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">"net.andimiller"</span> <span class="o">%%</span> <span class="s">"whales"</span> <span class="o">%</span> <span class="s">"0.2"</span>
+</code></pre></div></div>
 
 <h1 id="imports">Imports</h1>
 
@@ -20,7 +24,7 @@
 
 <p>Then you can also import this library.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">net.andimiller.docker._</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">net.andimiller.whales._</span>
 </code></pre></div></div>
 
 <h1 id="docker-client">Docker client</h1>
@@ -42,8 +46,7 @@
 
 <p>You can also pass in a DockerImage if you’d rather work with the case class.</p>
 
-<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">net.andimiller.docker.Docker.DockerImage</span>
-<span class="k">for</span> <span class="o">{</span>
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="o">{</span>
   <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
   <span class="n">nginx</span> <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="nc">DockerImage</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">))</span>
 <span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>

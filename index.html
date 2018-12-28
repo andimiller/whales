@@ -7,14 +7,14 @@
 <h1 id="example">Example</h1>
 
 <div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">cats._</span><span class="o">,</span> <span class="n">cats</span><span class="o">.</span><span class="n">implicits</span><span class="o">.</span><span class="k">_</span><span class="o">,</span> <span class="n">cats</span><span class="o">.</span><span class="n">effect</span><span class="o">.</span><span class="k">_</span>
-<span class="k">import</span> <span class="nn">net.andimiller.docker._</span>
+<span class="k">import</span> <span class="nn">net.andimiller.whales._</span>
 <span class="k">import</span> <span class="nn">org.http4s.client.blaze.BlazeClientBuilder</span>
 <span class="k">import</span> <span class="nn">org.http4s.client.Client</span>
 
 <span class="k">import</span> <span class="nn">scala.concurrent.ExecutionContext</span>
 
 <span class="k">object</span> <span class="nc">Example</span> <span class="k">extends</span> <span class="nc">IOApp</span> <span class="o">{</span>
-  <span class="k">val</span> <span class="n">nginx</span><span class="k">:</span> <span class="kt">Resource</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">Docker.DockerContainer</span><span class="o">]</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">nginx</span><span class="k">:</span> <span class="kt">Resource</span><span class="o">[</span><span class="kt">IO</span>, <span class="kt">DockerContainer</span><span class="o">]</span> <span class="k">=</span> <span class="k">for</span> <span class="o">{</span>
     <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
     <span class="n">nginx</span>  <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">)</span>
     <span class="k">_</span>      <span class="k">&lt;-</span> <span class="n">nginx</span><span class="o">.</span><span class="n">waitForPort</span><span class="o">[</span><span class="kt">IO</span><span class="o">](</span><span class="mi">80</span><span class="o">)</span>
