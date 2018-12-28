@@ -1,4 +1,4 @@
-package net.andimiller.docker
+package net.andimiller
 
 import java.net.{ConnectException, Socket}
 
@@ -13,9 +13,9 @@ import fs2._
 
 import scala.concurrent.duration._
 import scala.collection.JavaConverters._
-import scala.util.Try
 
-object Docker {
+package object whales {
+
 
   case class DockerImage(
                           name: String,
@@ -39,22 +39,24 @@ object Docker {
     def ipAddress: String = container.networkSettings().ipAddress()
   }
 
-  def client[F[_]](implicit F: Effect[F]) = Resource.make(
-    F.delay {
-      DefaultDockerClient.fromEnv().build()
+  object Docker {
+    def client[F[_]](implicit F: Effect[F]) = Resource.make(
+      F.delay {
+        DefaultDockerClient.fromEnv().build()
+      }
+    ) { c =>
+      F.delay {
+        c.close()
+      }
     }
-  ) { c =>
-    F.delay {
-      c.close()
-    }
+
+    def waitTcp[F[_] : Sync : Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[Unit] =
+      Stream.retry(Sync[F].delay {
+        new Socket(host, port)
+      }, delay = delay, nextDelay = _ * 2, maxAttempts = backoffs).compile.drain
+
+    def apply[F[_] : Effect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
   }
-
-  def waitTcp[F[_] : Sync : Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[Unit] =
-    Stream.retry(Sync[F].delay {
-      new Socket(host, port)
-    }, delay = delay, nextDelay = _ * 2, maxAttempts = backoffs).compile.drain
-
-  def apply[F[_] : Effect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
 
   case class DockerClient[F[_]](docker: DefaultDockerClient) {
 
@@ -92,5 +94,4 @@ object Docker {
       }
     }
   }
-
 }

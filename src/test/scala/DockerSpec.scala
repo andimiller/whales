@@ -10,8 +10,7 @@ import cats.data._
 import cats.effect._
 import cats.effect.implicits._
 import cats.effect.internals.IOContextShift
-import net.andimiller.docker.Docker.DockerImage
-import net.andimiller.docker._
+import net.andimiller.whales._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.util.CaseInsensitiveString
 import org.scalatest.{FlatSpec, MustMatchers, WordSpec}

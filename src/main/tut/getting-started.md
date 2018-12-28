@@ -5,7 +5,12 @@ title: Getting Started
 
 # Dependencies
 
-insert it here once I've published it to bintray
+This library is currently available on my bintray with:
+
+```scala
+resolvers += Resolver.bintrayRepo("andimiller", "maven")
+libraryDependencies += "net.andimiller" %% "whales" % "0.2"
+```
 
 # Imports
 
@@ -24,7 +29,7 @@ import cats.effect._
 Then you can also import this library.
 
 ```tut:silent
-import net.andimiller.docker._
+import net.andimiller.whales._
 ```
 
 
@@ -50,7 +55,6 @@ The client has an apply method which takes arguments on what kind of docker imag
 You can also pass in a DockerImage if you'd rather work with the case class.
 
 ```tut:silent
-import net.andimiller.docker.Docker.DockerImage
 for {
   docker <- Docker[IO]
   nginx <- docker(DockerImage("nginx", "latest"))

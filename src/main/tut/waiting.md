@@ -6,7 +6,7 @@ title: Waiting
 ```tut:invisible
 import cats._, cats.implicits._
 import cats.effect._
-import net.andimiller.docker._
+import net.andimiller.whales._
 ```
 
 

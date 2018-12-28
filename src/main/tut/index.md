@@ -18,14 +18,14 @@ It's intended to be used for integration testing but you can use it for whatever
 
 ```tut:silent
 import cats._, cats.implicits._, cats.effect._
-import net.andimiller.docker._
+import net.andimiller.whales._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.Client
 
 import scala.concurrent.ExecutionContext
 
 object Example extends IOApp {
-  val nginx: Resource[IO, Docker.DockerContainer] = for {
+  val nginx: Resource[IO, DockerContainer] = for {
     docker <- Docker[IO]
     nginx  <- docker("nginx", "latest")
     _      <- nginx.waitForPort[IO](80)
