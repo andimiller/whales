@@ -62,7 +62,7 @@ package object whales {
         .compile
         .drain
 
-    def apply[F[_]: Effect]: Resource[F, DockerClient[F]] = client[F].flatMap(c => Resource.pure(DockerClient[F](c)))
+    def apply[F[_]: Effect]: Resource[F, DockerClient[F]] = client[F].map(c => DockerClient[F](c))
   }
 
   case class DockerClient[F[_]](docker: DefaultDockerClient) {
