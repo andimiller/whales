@@ -9,7 +9,7 @@ This library is currently available on my bintray with:
 
 ```scala
 resolvers += Resolver.bintrayRepo("andimiller", "maven")
-libraryDependencies += "net.andimiller" %% "whales" % "0.3"
+libraryDependencies += "net.andimiller" %% "whales" % "0.4"
 ```
 
 ## Imports
