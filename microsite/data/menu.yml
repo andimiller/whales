@@ -4,3 +4,5 @@ options:
     url: getting-started.html
   - title: Waiting
     url: waiting.html
+  - title: Networking
+    url: networking.html
