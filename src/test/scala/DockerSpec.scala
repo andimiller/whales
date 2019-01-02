@@ -137,4 +137,20 @@ class DockerSpec extends FlatSpec with MustMatchers {
       .unsafeRunSync() must equal("hello world")
   }
 
+  "Docker" must "support networks" in {
+    val resources: Resource[IO, ExitedContainer] = for {
+      docker <- Docker[IO]
+      test1  <- docker.network("test1")
+      nginx  <- docker("nginx", "latest", name = Some("nginx1"), network = Some(test1.id()))
+      _      <- nginx.waitForPort(80)
+      curl   <- docker("byrnedo/alpine-curl", "latest", network = Some(test1.id()), command = Some("http://nginx1/"))
+      exited <- curl.waitForExit(docker)
+    } yield exited
+    resources.use { exited =>
+      IO {
+        exited.code must equal(0)
+        exited.logs must include("Welcome to nginx!")
+      }
+    }.unsafeRunSync()
+  }
 }

@@ -3,7 +3,7 @@ layout: docsplus
 title: Getting Started
 ---
 
-# Dependencies
+## Dependencies
 
 This library is currently available on my bintray with:
 
@@ -12,7 +12,7 @@ resolvers += Resolver.bintrayRepo("andimiller", "maven")
 libraryDependencies += "net.andimiller" %% "whales" % "0.3"
 ```
 
-# Imports
+## Imports
 
 Make sure you have the standard cats imports.
 
@@ -33,7 +33,7 @@ import net.andimiller.whales._
 ```
 
 
-# Docker client
+## Docker client
 
 To make a docker client you simply call the Docker object with your effect type (see cats-effect to learn more about effect types).
 
