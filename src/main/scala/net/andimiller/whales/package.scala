@@ -18,6 +18,8 @@ import scala.collection.JavaConverters._
 
 package object whales {
 
+  object syntax extends DockerSyntax
+
   case class DockerImage(
       image: String,
       version: String,
@@ -26,10 +28,21 @@ package object whales {
       command: Option[String] = None,
       ports: List[Int] = List.empty,
       env: Map[String, String] = Map.empty,
-      volumes: Map[String, String] = Map.empty
+      volumes: Map[String, String] = Map.empty,
+      bindings: Map[Port, Binding] = Map.empty,
   )
 
   case class ExitedContainer(code: Long, logs: String)
+
+  trait Port
+  case class TCP(port: Int) extends Port {
+    override def toString: String = s"$port/tcp"
+  }
+  case class UDP(port: Int) extends Port {
+    override def toString: String = s"$port/udp"
+  }
+
+  case class Binding(hostname: Option[String], port: Int)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
     def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, Unit] =
@@ -96,8 +109,9 @@ package object whales {
               command: Option[String] = None,
               ports: List[Int] = List.empty,
               env: Map[String, String] = Map.empty,
-              volumes: Map[String, String] = Map.empty)(implicit F: Effect[F]): Resource[F, DockerContainer] =
-      apply(DockerImage(image, version, name, network, command, ports, env, volumes))
+              volumes: Map[String, String] = Map.empty,
+              bindings: Map[Port, Binding] = Map.empty)(implicit F: Effect[F]): Resource[F, DockerContainer] =
+      apply(DockerImage(image, version, name, network, command, ports, env, volumes, bindings))
 
     def network(name: String)(implicit F: Effect[F]): Resource[F, NetworkCreation] =
       Resource.make(
@@ -114,14 +128,22 @@ package object whales {
     def apply(image: DockerImage)(implicit F: Effect[F]): Resource[F, DockerContainer] =
       Resource.make(
         F.delay {
+          val bindings = image.bindings.map { case (k, v) =>
+            (k.toString, List(PortBinding.of(v.hostname.getOrElse(""), v.port)).asJava)
+          }.toMap.asJava
           val container = ContainerConfig
             .builder()
             .hostConfig(
-              HostConfig.builder().appendBinds(image.volumes.map { case (k, v) => s"$k:$v" }.asJava).build()
+              HostConfig.builder()
+                .appendBinds(image.volumes.map { case (k, v) => s"$k:$v" }.asJava)
+                .networkMode("bridge")
+                .portBindings(bindings)
+                .build()
             )
             .image(image.image + ":" + image.version)
             .exposedPorts(image.ports.map(_.toString): _*)
             .env(image.env.map { case (k, v) => s"$k=$v" }.toList.asJava)
+
           val withCommand = image.command.foldLeft(container)((c, s) => c.cmd(s))
           docker.pull(image.image+ ":" + image.version)
           val creation = image.name match {

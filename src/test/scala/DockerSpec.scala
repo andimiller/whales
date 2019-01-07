@@ -153,4 +153,21 @@ class DockerSpec extends FlatSpec with MustMatchers {
       }
     }.unsafeRunSync()
   }
+
+  "Docker" must "be able to expose ports on the host" in {
+    import net.andimiller.whales.syntax._
+    val resources = for {
+      docker <- Docker[IO]
+      nginx  <- docker("nginx", "latest", ports = List(80), bindings = Map(80.tcp -> Binding(Some("localhost"), 9090)))
+      _      <- nginx.waitForPort[IO](80)
+      client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
+    } yield (client, nginx)
+    resources
+      .use {
+        case (c, n) =>
+          println("docker came up")
+          c.expect[String](s"http://localhost:9090/")
+      }
+      .unsafeRunSync() must include("Welcome to nginx!")
+  }
 }
