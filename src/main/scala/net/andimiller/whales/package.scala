@@ -42,7 +42,7 @@ package object whales {
     override def toString: String = s"$port/udp"
   }
 
-  case class Binding(hostname: Option[String], port: Int)
+  case class Binding(port: Int, hostname: Option[String] = None)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
     def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, Unit] =

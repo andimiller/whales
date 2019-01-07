@@ -53,3 +53,20 @@ for {
   exited <- curl.waitForExit(docker)
 } yield exited
 ```
+
+
+## Binding a port to the host
+
+You can bind ports onto the host if you need more predictable addressing, there's syntax available for the tcp/udp arguments
+
+```tut:silent
+import net.andimiller.whales.syntax._
+
+for {
+  docker <- Docker[IO]
+  nginx  <- docker("nginx", "latest",
+    bindings = Map(80.tcp -> Binding(8080)) // bind the container's 80 onto the host's 8080
+  )
+  _      <- nginx.waitForPort(80)
+} yield nginx
+```

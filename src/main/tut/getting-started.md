@@ -9,7 +9,7 @@ This library is currently available on my bintray with:
 
 ```scala
 resolvers += Resolver.bintrayRepo("andimiller", "maven")
-libraryDependencies += "net.andimiller" %% "whales" % "0.4"
+libraryDependencies += "net.andimiller" %% "whales" % "0.5"
 ```
 
 ## Imports
@@ -30,6 +30,7 @@ Then you can also import this library.
 
 ```tut:silent
 import net.andimiller.whales._
+import net.andimiller.whales.syntax._
 ```
 
 
