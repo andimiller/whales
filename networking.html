@@ -42,6 +42,21 @@
 <span class="o">}</span> <span class="k">yield</span> <span class="n">exited</span>
 </code></pre></div></div>
 
+<h2 id="binding-a-port-to-the-host">Binding a port to the host</h2>
+
+<p>You can bind ports onto the host if you need more predictable addressing, there’s syntax available for the tcp/udp arguments</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="nn">net.andimiller.whales.syntax._</span>
+
+<span class="k">for</span> <span class="o">{</span>
+  <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
+  <span class="n">nginx</span>  <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">,</span>
+    <span class="n">bindings</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="mf">80.</span><span class="n">tcp</span> <span class="o">-&gt;</span> <span class="nc">Binding</span><span class="o">(</span><span class="mi">8080</span><span class="o">))</span> <span class="c1">// bind the container's 80 onto the host's 8080
+</span>  <span class="o">)</span>
+  <span class="k">_</span>      <span class="k">&lt;-</span> <span class="n">nginx</span><span class="o">.</span><span class="n">waitForPort</span><span class="o">(</span><span class="mi">80</span><span class="o">)</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
+</code></pre></div></div>
+
 
 <link rel="stylesheet" type="text/css" href="/whales/css/toc.css"></link>
 <script type="text/javascript" src="/whales/js/toc.js"></script>
