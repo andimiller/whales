@@ -65,8 +65,26 @@ import net.andimiller.whales.syntax._
 for {
   docker <- Docker[IO]
   nginx  <- docker("nginx", "latest",
-    bindings = Map(80.tcp -> Binding(8080)) // bind the container's 80 onto the host's 8080
+    bindings = Map(80.tcp -> Binding(port = Some(8080))) // bind the container's 80 onto the host's 8080
   )
   _      <- nginx.waitForPort(80)
 } yield nginx
 ```
+
+## Binding to a random port on the host
+
+You can also bind to a random port on the host if you'd like
+
+```tut:silent
+import net.andimiller.whales.syntax._
+
+for {
+  docker <- Docker[IO]
+  nginx  <- docker("nginx", "latest",
+    bindings = Map(80.tcp -> Binding(hostname = Some("0.0.0.0"))
+  )
+  _      <- nginx.waitForPort(80)
+  boundPorts = nginx.ports
+} yield (nginx, boundPorts)
+```
+

@@ -158,7 +158,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
     import net.andimiller.whales.syntax._
     val resources = for {
       docker <- Docker[IO]
-      nginx  <- docker("nginx", "latest", ports = List(80), bindings = Map(80.tcp -> Binding(9090)))
+      nginx  <- docker("nginx", "latest", ports = List(80), bindings = Map(80.tcp -> Binding(Some(9090))))
       _      <- nginx.waitForPort[IO](80)
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (client, nginx)
@@ -169,5 +169,20 @@ class DockerSpec extends FlatSpec with MustMatchers {
           c.expect[String](s"http://localhost:9090/")
       }
       .unsafeRunSync() must include("Welcome to nginx!")
+  }
+
+  "Docker" must "be able to expose random ports on the host" in {
+    import net.andimiller.whales.syntax._
+    val resources = for {
+      docker <- Docker[IO]
+      nginx  <- docker("nginx", "latest", ports = List(80), bindings = Map(80.tcp -> Binding(hostname = Some("0.0.0.0"))))
+      _      <- nginx.waitForPort[IO](80)
+    } yield nginx
+    resources
+      .use {
+        case n =>
+          IO { n.ports.get(80.tcp) must not be empty }
+      }
+      .unsafeRunSync()
   }
 }

@@ -41,8 +41,16 @@ package object whales {
   case class UDP(port: Int) extends Port {
     override def toString: String = s"$port/udp"
   }
+  object Port {
+    def fromString(s: String): Option[Port] = s match {
+      case s1 if s1.endsWith("/tcp") => Some(TCP(Integer.parseInt(s.stripSuffix("/tcp"))))
+      case s1 if s1.endsWith("/udp") => Some(UDP(Integer.parseInt(s.stripSuffix("/udp"))))
+      case _ => None
+    }
+    def fromStringUnsafe(s: String): Port = fromString(s).get
+  }
 
-  case class Binding(port: Int, hostname: Option[String] = None)
+  case class Binding(port: Option[Int] = None, hostname: Option[String] = None)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
     def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, Unit] =
@@ -64,6 +72,11 @@ package object whales {
       )
 
     def ipAddress: String = container.networkSettings().ipAddress()
+
+    def ports: Map[Port, List[(String, Int)]] =
+      container.networkSettings().ports().asScala.map{
+        case (k, v) => (Port.fromStringUnsafe(k), v.asScala.map(p => (p.hostIp(), Integer.parseInt(p.hostPort()))).toList)
+      }.toMap
   }
 
   object Docker {
@@ -129,7 +142,7 @@ package object whales {
       Resource.make(
         F.delay {
           val bindings = image.bindings.map { case (k, v) =>
-            (k.toString, List(PortBinding.of(v.hostname.getOrElse(""), v.port)).asJava)
+            (k.toString, List(PortBinding.of(v.hostname.getOrElse(""), v.port.map(_.toString).getOrElse(""))).asJava)
           }.toMap.asJava
           val container = ContainerConfig
             .builder()
