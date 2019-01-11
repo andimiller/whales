@@ -75,16 +75,16 @@ for {
 
 You can also bind to a random port on the host if you'd like
 
-```tut:silent
+```tut
 import net.andimiller.whales.syntax._
 
-for {
+{ for {
   docker <- Docker[IO]
   nginx  <- docker("nginx", "latest",
-    bindings = Map(80.tcp -> Binding(hostname = Some("0.0.0.0"))
+    bindings = Map(80.tcp -> Binding(hostname = Some("0.0.0.0")))
   )
   _      <- nginx.waitForPort(80)
   boundPorts = nginx.ports
-} yield (nginx, boundPorts)
+} yield (boundPorts) }.use(IO.pure).unsafeRunSync()
 ```
 
