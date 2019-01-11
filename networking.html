@@ -51,11 +51,30 @@
 <span class="k">for</span> <span class="o">{</span>
   <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
   <span class="n">nginx</span>  <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">,</span>
-    <span class="n">bindings</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="mf">80.</span><span class="n">tcp</span> <span class="o">-&gt;</span> <span class="nc">Binding</span><span class="o">(</span><span class="mi">8080</span><span class="o">))</span> <span class="c1">// bind the container's 80 onto the host's 8080
+    <span class="n">bindings</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="mf">80.</span><span class="n">tcp</span> <span class="o">-&gt;</span> <span class="nc">Binding</span><span class="o">(</span><span class="n">port</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="mi">8080</span><span class="o">)))</span> <span class="c1">// bind the container's 80 onto the host's 8080
 </span>  <span class="o">)</span>
   <span class="k">_</span>      <span class="k">&lt;-</span> <span class="n">nginx</span><span class="o">.</span><span class="n">waitForPort</span><span class="o">(</span><span class="mi">80</span><span class="o">)</span>
 <span class="o">}</span> <span class="k">yield</span> <span class="n">nginx</span>
 </code></pre></div></div>
+
+<h2 id="binding-to-a-random-port-on-the-host">Binding to a random port on the host</h2>
+
+<p>You can also bind to a random port on the host if you’d like</p>
+
+<div class="language-scala highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scala</span><span class="o">&gt;</span> <span class="k">import</span> <span class="nn">net.andimiller.whales.syntax._</span>
+<span class="k">import</span> <span class="nn">net.andimiller.whales.syntax._</span>
+
+<span class="n">scala</span><span class="o">&gt;</span> <span class="o">{</span> <span class="k">for</span> <span class="o">{</span>
+     <span class="o">|</span>   <span class="n">docker</span> <span class="k">&lt;-</span> <span class="nc">Docker</span><span class="o">[</span><span class="kt">IO</span><span class="o">]</span>
+     <span class="o">|</span>   <span class="n">nginx</span>  <span class="k">&lt;-</span> <span class="n">docker</span><span class="o">(</span><span class="s">"nginx"</span><span class="o">,</span> <span class="s">"latest"</span><span class="o">,</span>
+     <span class="o">|</span>     <span class="n">bindings</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="mf">80.</span><span class="n">tcp</span> <span class="o">-&gt;</span> <span class="nc">Binding</span><span class="o">(</span><span class="n">hostname</span> <span class="k">=</span> <span class="nc">Some</span><span class="o">(</span><span class="s">"0.0.0.0"</span><span class="o">)))</span>
+     <span class="o">|</span>   <span class="o">)</span>
+     <span class="o">|</span>   <span class="k">_</span>      <span class="k">&lt;-</span> <span class="n">nginx</span><span class="o">.</span><span class="n">waitForPort</span><span class="o">(</span><span class="mi">80</span><span class="o">)</span>
+     <span class="o">|</span>   <span class="n">boundPorts</span> <span class="k">=</span> <span class="n">nginx</span><span class="o">.</span><span class="n">ports</span>
+     <span class="o">|</span> <span class="o">}</span> <span class="k">yield</span> <span class="o">(</span><span class="n">boundPorts</span><span class="o">)</span> <span class="o">}.</span><span class="n">use</span><span class="o">(</span><span class="nc">IO</span><span class="o">.</span><span class="n">pure</span><span class="o">).</span><span class="n">unsafeRunSync</span><span class="o">()</span>
+<span class="n">res4</span><span class="k">:</span> <span class="kt">Map</span><span class="o">[</span><span class="kt">net.andimiller.whales.Port</span>,<span class="kt">List</span><span class="o">[(</span><span class="kt">String</span>, <span class="kt">Int</span><span class="o">)]]</span> <span class="k">=</span> <span class="nc">Map</span><span class="o">(</span><span class="mi">80</span><span class="o">/</span><span class="n">tcp</span> <span class="o">-&gt;</span> <span class="nc">List</span><span class="o">((</span><span class="mf">0.0</span><span class="o">.</span><span class="mf">0.0</span><span class="o">,</span><span class="mi">32774</span><span class="o">)))</span>
+</code></pre></div></div>
+
 
 
 <link rel="stylesheet" type="text/css" href="/whales/css/toc.css"></link>
