@@ -9,12 +9,14 @@ import cats.data._
 import cats.effect._
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.DockerClient.LogsParam
+import com.spotify.docker.client.exceptions.ImageNotFoundException
 import com.spotify.docker.client.messages.ContainerConfig.NetworkingConfig
 import com.spotify.docker.client.messages._
 import fs2._
 
 import scala.concurrent.duration._
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 package object whales {
 
@@ -30,6 +32,7 @@ package object whales {
       env: Map[String, String] = Map.empty,
       volumes: Map[String, String] = Map.empty,
       bindings: Map[Port, Binding] = Map.empty,
+      alwaysPull: Boolean = false,
   )
 
   case class ExitedContainer(code: Long, logs: String)
@@ -123,8 +126,9 @@ package object whales {
               ports: List[Int] = List.empty,
               env: Map[String, String] = Map.empty,
               volumes: Map[String, String] = Map.empty,
-              bindings: Map[Port, Binding] = Map.empty)(implicit F: Effect[F]): Resource[F, DockerContainer] =
-      apply(DockerImage(image, version, name, network, command, ports, env, volumes, bindings))
+              bindings: Map[Port, Binding] = Map.empty,
+              alwaysPull: Boolean = false)(implicit F: Effect[F]): Resource[F, DockerContainer] =
+      apply(DockerImage(image, version, name, network, command, ports, env, volumes, bindings, alwaysPull))
 
     def network(name: String)(implicit F: Effect[F]): Resource[F, NetworkCreation] =
       Resource.make(
@@ -158,7 +162,14 @@ package object whales {
             .env(image.env.map { case (k, v) => s"$k=$v" }.toList.asJava)
 
           val withCommand = image.command.foldLeft(container)((c, s) => c.cmd(s))
-          docker.pull(image.image+ ":" + image.version)
+          val imageName = image.image + ":" + image.version
+          if (image.alwaysPull) {
+            docker.pull(imageName)
+          } else {
+            Try { docker.inspectImage(imageName) }.recover { case _: ImageNotFoundException =>
+              docker.pull(imageName)
+            }
+          }
           val creation = image.name match {
             case Some(name) => docker.createContainer(withCommand.build(), name)
             case None       => docker.createContainer(withCommand.build())
