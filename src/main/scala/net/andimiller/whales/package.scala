@@ -56,10 +56,10 @@ package object whales {
   case class Binding(port: Option[Int] = None, hostname: Option[String] = None)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, Unit] =
+    def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second, nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
       Resource.liftF(
         Docker
-          .waitTcp[F](container.networkSettings().ipAddress(), port, backoffs = backoffs, delay = delay)
+          .waitTcp[F](container.networkSettings().ipAddress(), port, backoffs = backoffs, delay = delay, nextDelay = nextDelay)
           .attemptT
           .recover {
             case e: ConnectException =>
@@ -105,11 +105,11 @@ package object whales {
       .compile
       .lastOrError
 
-    private[whales] def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[Unit] =
+    private[whales] def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second, nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
       Stream
         .retry(Sync[F].delay {
           new Socket(host, port)
-        }, delay = delay, nextDelay = _ * 2, maxAttempts = backoffs)
+        }, delay = delay, nextDelay = nextDelay, maxAttempts = backoffs)
         .compile
         .drain
 
