@@ -27,7 +27,7 @@ package object whales {
       version: String,
       name: Option[String] = None,
       network: Option[String] = None,
-      command: Option[String] = None,
+      command: Option[List[String]] = None,
       ports: List[Int] = List.empty,
       env: Map[String, String] = Map.empty,
       volumes: Map[String, String] = Map.empty,
@@ -122,7 +122,7 @@ package object whales {
               version: String,
               name: Option[String] = None,
               network: Option[String] = None,
-              command: Option[String] = None,
+              command: Option[List[String]] = None,
               ports: List[Int] = List.empty,
               env: Map[String, String] = Map.empty,
               volumes: Map[String, String] = Map.empty,
@@ -161,7 +161,7 @@ package object whales {
             .exposedPorts(image.ports.map(_.toString): _*)
             .env(image.env.map { case (k, v) => s"$k=$v" }.toList.asJava)
 
-          val withCommand = image.command.foldLeft(container)((c, s) => c.cmd(s))
+          val withCommand = image.command.foldLeft(container)((c, s) => c.cmd(s.asJava))
           val imageName = image.image + ":" + image.version
           if (image.alwaysPull) {
             docker.pull(imageName)
