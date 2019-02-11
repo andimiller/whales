@@ -19,7 +19,7 @@ It's intended to be used for integration testing but you can use it for whatever
 
 ```scala
 resolvers += Resolver.bintrayRepo("andimiller", "maven")
-libraryDependencies += "net.andimiller" %% "whales" % "0.7"
+libraryDependencies += "net.andimiller" %% "whales" % "0.10"
 ```
 
 
