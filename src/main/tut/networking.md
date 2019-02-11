@@ -20,7 +20,7 @@ for {
   docker <- Docker[IO]
   nginx  <- docker("nginx", "latest")
   _      <- nginx.waitForPort(80)
-  curl   <- docker("byrnedo/alpine-curl", "latest", command = Some(s"http://${nginx.ipAddress}"))
+  curl   <- docker("byrnedo/alpine-curl", "latest", command = Some(List(s"http://${nginx.ipAddress}")))
   exited <- curl.waitForExit(docker)
 } yield exited
 ```
@@ -49,7 +49,7 @@ for {
   test1  <- docker.network("test1")
   nginx  <- docker("nginx", "latest", name = Some("nginx1"), network = Some(test1.id()))
   _      <- nginx.waitForPort(80)
-  curl   <- docker("byrnedo/alpine-curl", "latest", network = Some(test1.id()), command = Some("http://nginx1/"))
+  curl   <- docker("byrnedo/alpine-curl", "latest", network = Some(test1.id()), command = Some(List("http://nginx1/")))
   exited <- curl.waitForExit(docker)
 } yield exited
 ```

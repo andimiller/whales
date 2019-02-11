@@ -143,7 +143,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
       test1  <- docker.network("test1")
       nginx  <- docker("nginx", "latest", name = Some("nginx1"), network = Some(test1.id()))
       _      <- nginx.waitForPort(80)
-      curl   <- docker("byrnedo/alpine-curl", "latest", network = Some(test1.id()), command = Some("http://nginx1/"))
+      curl   <- docker("byrnedo/alpine-curl", "latest", network = Some(test1.id()), command = Some(List("http://nginx1/")))
       exited <- curl.waitForExit(docker)
     } yield exited
     resources.use { exited =>

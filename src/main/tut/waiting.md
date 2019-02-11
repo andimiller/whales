@@ -41,7 +41,7 @@ implicit val sync = Sync[IO]
 ```tut:silent
 for {
   docker <- Docker[IO]
-  nginx  <- docker("byrnedo/alpine-curl", "latest", command=Some("http://google.com"))
+  nginx  <- docker("byrnedo/alpine-curl", "latest", command=Some(List("http://google.com")))
   exited <- nginx.waitForExit(docker)
 } yield (exited.code, exited.logs)
 ```
