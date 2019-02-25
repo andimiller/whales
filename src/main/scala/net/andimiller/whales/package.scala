@@ -32,7 +32,7 @@ package object whales {
       env: Map[String, String] = Map.empty,
       volumes: Map[String, String] = Map.empty,
       bindings: Map[Port, Binding] = Map.empty,
-      alwaysPull: Boolean = false,
+      alwaysPull: Boolean = false
   )
 
   case class ExitedContainer(code: Long, logs: String)

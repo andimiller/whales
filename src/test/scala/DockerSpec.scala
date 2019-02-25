@@ -71,7 +71,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                          env = Map(
                            "INPUT_TYPE"  -> "http_server",
                            "OUTPUT_TYPE" -> "http_server",
-                           "BUFFER_TYPE" -> "memory",
+                           "BUFFER_TYPE" -> "memory"
                          ),
                          ports = List(4195))
       _ <- benthos1.waitForPort[IO](4195)
@@ -82,7 +82,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                      "INPUT_TYPE"            -> "http_client",
                      "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos1.ipAddress}:4195/benthos/get",
                      "OUTPUT_TYPE"           -> "http_server",
-                     "BUFFER_TYPE"           -> "memory",
+                     "BUFFER_TYPE"           -> "memory"
                    ),
                    ports = List(4195)
                  )
@@ -94,7 +94,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                      "INPUT_TYPE"            -> "http_client",
                      "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos2.ipAddress}:4195/benthos/get",
                      "OUTPUT_TYPE"           -> "http_server",
-                     "BUFFER_TYPE"           -> "memory",
+                     "BUFFER_TYPE"           -> "memory"
                    ),
                    ports = List(4195)
                  )
@@ -106,7 +106,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                      "INPUT_TYPE"            -> "http_client",
                      "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos3.ipAddress}:4195/benthos/get",
                      "OUTPUT_TYPE"           -> "http_server",
-                     "BUFFER_TYPE"           -> "memory",
+                     "BUFFER_TYPE"           -> "memory"
                    ),
                    ports = List(4195)
                  )
@@ -118,7 +118,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                      "INPUT_TYPE"            -> "http_client",
                      "INPUT_HTTP_CLIENT_URL" -> s"http://${benthos4.ipAddress}:4195/benthos/get",
                      "OUTPUT_TYPE"           -> "http_server",
-                     "BUFFER_TYPE"           -> "memory",
+                     "BUFFER_TYPE"           -> "memory"
                    ),
                    ports = List(4195)
                  )

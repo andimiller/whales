@@ -11,6 +11,8 @@ licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
 
 scalacOptions += "-Ypartial-unification"
 
+crossScalaVersions := List("2.12.8", "2.11.12")
+
 lazy val catsEffectVersion    = "1.1.0"
 lazy val fs2Version           = "1.0.0"
 lazy val spotifyDockerVersion = "8.14.4"
