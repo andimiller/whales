@@ -71,3 +71,19 @@ micrositePalette := Map(
   "gray-lighter"    -> "#F4F3F4",
   "white-color"     -> "#FFFFFF"
 )
+
+import ReleaseTransformations._
+releaseCrossBuild := false
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  releaseStepCommandAndRemaining("+test"),
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  releaseStepCommandAndRemaining("+publishSigned"),
+  setNextVersion,
+  commitNextVersion,
+  pushChanges
+)
