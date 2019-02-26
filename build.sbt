@@ -53,13 +53,13 @@ micrositeOrganizationHomepage := "http://andimiller.net/"
 micrositeGithubOwner := "andimiller"
 micrositeGithubRepo := "whales"
 
-micrositeUrl := "http://andimiller.github.io/"
+micrositeUrl := "https://whales.andimiller.net"
 
-micrositeBaseUrl := "/whales"
+micrositeBaseUrl := "/"
 
-micrositeHomepage := "http://andimiller.github.io/andimiller/"
+micrositeHomepage := "https://whales.andimiller.net"
 
-micrositeDocumentationUrl := "/whales/getting-started.html"
+micrositeDocumentationUrl := "/getting-started.html"
 
 micrositePalette := Map(
   "brand-primary"   -> "#80CBC4",
