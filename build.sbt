@@ -55,8 +55,6 @@ micrositeGithubRepo := "whales"
 
 micrositeUrl := "https://whales.andimiller.net"
 
-micrositeBaseUrl := "/"
-
 micrositeHomepage := "https://whales.andimiller.net"
 
 micrositeDocumentationUrl := "/getting-started.html"
