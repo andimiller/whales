@@ -70,6 +70,11 @@ micrositePalette := Map(
   "white-color"     -> "#FFFFFF"
 )
 
+excludeFilter in ghpagesCleanSite :=
+  new FileFilter{
+    def accept(f: File) = (ghpagesRepository.value / "CNAME").getCanonicalPath == f.getCanonicalPath
+  }
+
 import ReleaseTransformations._
 releaseCrossBuild := false
 releaseProcess := Seq[ReleaseStep](
