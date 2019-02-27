@@ -7,8 +7,6 @@ name := "whales"
 
 scalaVersion := "2.12.8"
 
-licenses += ("MIT", url("http://opensource.org/licenses/MIT"))
-
 scalacOptions += "-Ypartial-unification"
 
 crossScalaVersions := List("2.12.8", "2.11.12")
@@ -75,6 +73,14 @@ excludeFilter in ghpagesCleanSite :=
     def accept(f: File) = (ghpagesRepository.value / "CNAME").getCanonicalPath == f.getCanonicalPath
   }
 
+// publishing/releasing settings
+import xerial.sbt.Sonatype._
+
+publishTo := sonatypePublishTo.value
+licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
+sonatypeProjectHosting := Some(GitHubHosting("andimiller", "whalesl", "andi at andimiller dot net"))
+developers := List(Developer(id="andimiller", name="Andi Miller", email="andi@andimiller.net", url=url("http://andimiller.net")))
+
 import ReleaseTransformations._
 releaseCrossBuild := false
 releaseProcess := Seq[ReleaseStep](
@@ -85,7 +91,7 @@ releaseProcess := Seq[ReleaseStep](
   setReleaseVersion,
   commitReleaseVersion,
   tagRelease,
-  releaseStepCommandAndRemaining("+publish"),
+  releaseStepCommandAndRemaining("+publishSigned"),
   setNextVersion,
   commitNextVersion,
   pushChanges
