@@ -76,6 +76,7 @@ excludeFilter in ghpagesCleanSite :=
 // publishing/releasing settings
 import xerial.sbt.Sonatype._
 
+useGpg := true
 publishTo := sonatypePublishTo.value
 licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
 sonatypeProjectHosting := Some(GitHubHosting("andimiller", "whalesl", "andi at andimiller dot net"))
