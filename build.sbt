@@ -79,7 +79,7 @@ import xerial.sbt.Sonatype._
 useGpg := true
 publishTo := sonatypePublishTo.value
 licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
-sonatypeProjectHosting := Some(GitHubHosting("andimiller", "whalesl", "andi at andimiller dot net"))
+sonatypeProjectHosting := Some(GitHubHosting("andimiller", "whales", "andi at andimiller dot net"))
 developers := List(Developer(id="andimiller", name="Andi Miller", email="andi@andimiller.net", url=url("http://andimiller.net")))
 
 import ReleaseTransformations._
