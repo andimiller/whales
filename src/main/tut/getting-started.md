@@ -5,11 +5,10 @@ title: Getting Started
 
 ## Dependencies
 
-This library is currently available on my bintray with:
+This library is currently available on maven central with:
 
 ```scala
-resolvers += Resolver.bintrayRepo("andimiller", "maven")
-libraryDependencies += "net.andimiller" %% "whales" % "0.10"
+libraryDependencies += "net.andimiller" %% "whales" % "0.13.0"
 ```
 
 ## Imports
