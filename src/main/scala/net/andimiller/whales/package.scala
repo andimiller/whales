@@ -1,5 +1,6 @@
 package net.andimiller
 
+import java.io.OutputStream
 import java.net.{ConnectException, Socket}
 
 import cats._
@@ -7,8 +8,8 @@ import cats.implicits._
 import cats.syntax._
 import cats.data._
 import cats.effect._
-import com.spotify.docker.client.DefaultDockerClient
-import com.spotify.docker.client.DockerClient.LogsParam
+import com.spotify.docker.client.{DefaultDockerClient, LogMessage}
+import com.spotify.docker.client.DockerClient.{AttachParameter, LogsParam}
 import com.spotify.docker.client.exceptions.ImageNotFoundException
 import com.spotify.docker.client.messages.ContainerConfig.NetworkingConfig
 import com.spotify.docker.client.messages._
@@ -22,7 +23,17 @@ package object whales {
 
   object syntax extends DockerSyntax
 
-  case class DockerImage(
+  sealed trait LogType
+  object LogType {
+    case object StdOut extends LogType
+    case object StdErr extends LogType
+    case object StdIn extends LogType
+  }
+
+
+  case class ContainerLog[F[_]](container: DockerImage[F], logType: LogType, message: String)
+
+  case class DockerImage[F[_]](
       image: String,
       version: String,
       name: Option[String] = None,
@@ -32,7 +43,8 @@ package object whales {
       env: Map[String, String] = Map.empty,
       volumes: Map[String, String] = Map.empty,
       bindings: Map[Port, Binding] = Map.empty,
-      alwaysPull: Boolean = false
+      alwaysPull: Boolean = false,
+      logSink: Kleisli[F, ContainerLog[F], Unit] = (_: ContainerLog[F]) => IO.unit
   )
 
   case class ExitedContainer(code: Long, logs: String)
@@ -55,8 +67,8 @@ package object whales {
 
   case class Binding(port: Option[Int] = None, hostname: Option[String] = None)
 
-  case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second, nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
+  case class DockerContainer[F[_]: Sync: Timer](creation: DockerImage[F], container: ContainerInfo) {
+    def waitForPort(port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second, nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
       Resource.liftF(
         Docker
           .waitTcp[F](container.networkSettings().ipAddress(), port, backoffs = backoffs, delay = delay, nextDelay = nextDelay)
@@ -69,7 +81,7 @@ package object whales {
           .rethrow
       )
 
-    def waitForExit[F[_]: Sync: Timer](docker: DockerClient[F], backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, ExitedContainer] =
+    def waitForExit(docker: DockerClient[F], backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, ExitedContainer] =
       Resource.liftF(
         Docker.waitExit[F](docker.docker, container.id(), backoffs, delay)
       )
@@ -127,8 +139,10 @@ package object whales {
               env: Map[String, String] = Map.empty,
               volumes: Map[String, String] = Map.empty,
               bindings: Map[Port, Binding] = Map.empty,
-              alwaysPull: Boolean = false)(implicit F: Effect[F]): Resource[F, DockerContainer] =
-      apply(DockerImage(image, version, name, network, command, ports, env, volumes, bindings, alwaysPull))
+              alwaysPull: Boolean = false,
+              logSink: Kleisli[F, ContainerLog[F], Unit] = (_: ContainerLog[F]) => IO.unit
+             )(implicit F: Effect[F], t: Timer[F], cs: ContextShift[F]): Resource[F, DockerContainer[F]] =
+      apply(DockerImage(image, version, name, network, command, ports, env, volumes, bindings, alwaysPull, logSink))
 
     def network(name: String)(implicit F: Effect[F]): Resource[F, NetworkCreation] =
       Resource.make(
@@ -142,7 +156,7 @@ package object whales {
         }
       }
 
-    def apply(image: DockerImage)(implicit F: Effect[F]): Resource[F, DockerContainer] =
+    def apply(image: DockerImage[F])(implicit F: Effect[F], t: Timer[F], cs: ContextShift[F]): Resource[F, DockerContainer[F]] =
       Resource.make(
         F.delay {
           val bindings = image.bindings.map { case (k, v) =>
@@ -178,6 +192,16 @@ package object whales {
             docker.connectToNetwork(creation.id(), network)
           }
           docker.startContainer(creation.id())
+          val logThread = Stream.fromIterator[F, LogMessage](docker.attachContainer(creation.id(), AttachParameter.STREAM).asScala).flatMap { lm =>
+            val logType = lm.stream() match {
+              case LogMessage.Stream.STDOUT => LogType.StdOut
+              case LogMessage.Stream.STDERR => LogType.StdErr
+              case LogMessage.Stream.STDIN => LogType.StdIn
+            }
+            Stream.eval(
+              image.logSink.run(ContainerLog(image, logType, lm.content().toString))
+            )
+          }.compile.drain // run in background here, add some kind of latch
           DockerContainer(image, docker.inspectContainer(creation.id()))
         }
       ) {
