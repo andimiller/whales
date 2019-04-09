@@ -11,8 +11,8 @@ scalacOptions += "-Ypartial-unification"
 
 crossScalaVersions := List("2.12.8", "2.11.12")
 
-lazy val catsEffectVersion    = "1.1.0"
-lazy val fs2Version           = "1.0.0"
+lazy val catsEffectVersion    = "1.2.0"
+lazy val fs2Version           = "1.0.4"
 lazy val spotifyDockerVersion = "8.14.4"
 
 libraryDependencies ++= Seq(
