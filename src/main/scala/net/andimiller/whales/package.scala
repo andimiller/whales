@@ -7,6 +7,7 @@ import cats.implicits._
 import cats.syntax._
 import cats.data._
 import cats.effect._
+import cats.effect.concurrent.Ref
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.DockerClient.LogsParam
 import com.spotify.docker.client.exceptions.ImageNotFoundException
@@ -35,7 +36,7 @@ package object whales {
       alwaysPull: Boolean = false
   )
 
-  case class ExitedContainer(code: Long, logs: String)
+  case class ExitedContainer(container: ContainerInfo, code: Long, logs: String)
 
   trait Port
   case class TCP(port: Int) extends Port {
@@ -94,16 +95,26 @@ package object whales {
         }
       }
 
+    private[whales] def waitExit[F[_]: Sync: Timer](docker: DefaultDockerClient,
+                                                    id: String,
+                                                    backoffs: Int = 5,
+                                                    delay: FiniteDuration = 1 second): F[ExitedContainer] =
+      Stream
+        .retry(
+          Sync[F].delay {
+            val container = docker.inspectContainer(id)
+            val state     = container.state()
+            assert(state.running() == false, s"Container $id still running")
+            ExitedContainer(container, state.exitCode(), docker.logs(id, LogsParam.stdout(), LogsParam.stderr()).readFully())
+          },
+          delay = delay,
+          nextDelay = _ * 2,
+          maxAttempts = backoffs
+        )
+        .take(1)
+        .compile
+        .lastOrError
 
-    private[whales] def waitExit[F[_]: Sync: Timer](docker: DefaultDockerClient, id: String, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[ExitedContainer] =
-      Stream.retry(Sync[F].delay {
-        val state = docker.inspectContainer(id).state()
-        assert(state.running() == false, s"Container $id still running")
-        ExitedContainer(state.exitCode(), docker.logs(id, LogsParam.stdout(), LogsParam.stderr()).readFully())
-      }, delay = delay, nextDelay = _ * 2, maxAttempts = backoffs)
-      .take(1)
-      .compile
-      .lastOrError
 
     private[whales] def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second, nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
       Stream
@@ -113,10 +124,14 @@ package object whales {
         .compile
         .drain
 
-    def apply[F[_]: Effect]: Resource[F, DockerClient[F]] = client[F].map(c => DockerClient[F](c))
+    def apply[F[_]: Effect]: Resource[F, DockerClient[F]] =
+      for {
+        c        <- client[F]
+        exitLogs <- Resource.liftF(Ref[F].of(List.empty[ExitedContainer]))
+      } yield DockerClient[F](c, exitLogs)
   }
 
-  case class DockerClient[F[_]](docker: DefaultDockerClient) {
+  case class DockerClient[F[_]](docker: DefaultDockerClient, private val exitLogs: Ref[F, List[ExitedContainer]]) {
 
     def apply(image: String,
               version: String,
@@ -141,6 +156,12 @@ package object whales {
           docker.removeNetwork(n.id())
         }
       }
+
+    /**
+      * Will return the accumulated exit logs for containers controlled by this docker client
+      * Only evaluate this after the containers have been shut down, or it'll be empty.
+      */
+    def getExitLogs: F[List[ExitedContainer]] = exitLogs.get
 
     def apply(image: DockerImage)(implicit F: Effect[F]): Resource[F, DockerContainer] =
       Resource.make(
@@ -182,13 +203,21 @@ package object whales {
         }
       ) {
         case DockerContainer(_, c) =>
-          F.delay {
-            val container = docker.inspectContainer(c.id())
-            if (container.state().running()) {
-              docker.killContainer(c.id())
-            }
-            docker.removeContainer(c.id())
-          }
+          for {
+            container <- F.delay { docker.inspectContainer(c.id()) }
+            state     =  container.state()
+            _ <- exitLogs.update(
+                  ls =>
+                    ls :+ ExitedContainer(container,
+                                          state.exitCode(),
+                                          docker.logs(c.id(), LogsParam.stdout(), LogsParam.stderr()).readFully()))
+            _ <- F.delay {
+                  if (state.running) {
+                    docker.killContainer(c.id())
+                  }
+                  docker.removeContainer(c.id())
+                }
+          } yield ()
       }
   }
 }

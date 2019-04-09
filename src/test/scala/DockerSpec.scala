@@ -19,10 +19,6 @@ import scala.concurrent.ExecutionContext
 
 class DockerSpec extends FlatSpec with MustMatchers {
 
-  object implicit0 {
-    def unapply[A](a: A): Option[A] = Some(a)
-  }
-
   def fixedPool[F[_]: Sync](n: Int): Resource[F, ExecutorService] =
     Resource.make(Sync[F].delay(Executors.newFixedThreadPool(n)))(p =>
       Sync[F].delay {
@@ -184,5 +180,19 @@ class DockerSpec extends FlatSpec with MustMatchers {
           IO { n.ports.get(80.tcp) must not be empty }
       }
       .unsafeRunSync()
+  }
+
+  "Docker" must "expose logs of exited containers" in {
+    import net.andimiller.whales.syntax._
+    val resources: Resource[IO, IO[List[ExitedContainer]]] = for {
+      docker <- Docker[IO]
+      curl   <- docker("byrnedo/alpine-curl", "latest", command = Some(List("--help")))
+      _      <- curl.waitForExit(docker)
+    } yield docker.getExitLogs
+    val logs = resources.use { exits =>
+      IO.pure(exits)
+    }.flatten.unsafeRunSync()
+    logs.head.code must equal(0)
+    logs.head.logs must startWith("Usage: curl")
   }
 }
