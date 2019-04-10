@@ -39,7 +39,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
     val resources = for {
       docker <- Docker[IO]
       nginx  <- docker("nginx", "latest")
-      _      <- nginx.waitForPort[IO](80)
+      _      <- nginx.waitForPort(80)
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (client, nginx)
     resources
@@ -74,7 +74,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                            "BUFFER_TYPE" -> "memory"
                          ),
                          ports = List(4195))
-      _ <- benthos1.waitForPort[IO](4195)
+      _ <- benthos1.waitForPort(4195)
       benthos2 <- docker(
                    "jeffail/benthos",
                    "latest",
@@ -86,7 +86,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                    ),
                    ports = List(4195)
                  )
-      _ <- benthos2.waitForPort[IO](4195)
+      _ <- benthos2.waitForPort(4195)
       benthos3 <- docker(
                    "jeffail/benthos",
                    "latest",
@@ -98,7 +98,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                    ),
                    ports = List(4195)
                  )
-      _ <- benthos3.waitForPort[IO](4195)
+      _ <- benthos3.waitForPort(4195)
       benthos4 <- docker(
                    "jeffail/benthos",
                    "latest",
@@ -110,7 +110,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                    ),
                    ports = List(4195)
                  )
-      _ <- benthos4.waitForPort[IO](4195)
+      _ <- benthos4.waitForPort(4195)
       benthos5 <- docker(
                    "jeffail/benthos",
                    "latest",
@@ -122,7 +122,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
                    ),
                    ports = List(4195)
                  )
-      _      <- benthos5.waitForPort[IO](4195)
+      _      <- benthos5.waitForPort(4195)
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (benthos1, benthos5, client)
     resources
@@ -159,7 +159,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
     val resources = for {
       docker <- Docker[IO]
       nginx  <- docker("nginx", "latest", ports = List(80), bindings = Map(80.tcp -> Binding(Some(9090))))
-      _      <- nginx.waitForPort[IO](80)
+      _      <- nginx.waitForPort(80)
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (client, nginx)
     resources
@@ -176,12 +176,58 @@ class DockerSpec extends FlatSpec with MustMatchers {
     val resources = for {
       docker <- Docker[IO]
       nginx  <- docker("nginx", "latest", ports = List(80), bindings = Map(80.tcp -> Binding(hostname = Some("0.0.0.0"))))
-      _      <- nginx.waitForPort[IO](80)
+      _      <- nginx.waitForPort(80)
     } yield nginx
     resources
       .use {
         case n =>
           IO { n.ports.get(80.tcp) must not be empty }
+      }
+      .unsafeRunSync()
+  }
+
+  "Docker" must "be able to propagate logs" in {
+    import net.andimiller.whales.syntax._
+    val logs = scala.collection.mutable.Buffer[(LogType, String)]()
+    val resources = for {
+      docker <- Docker[IO]
+      nginx  <- docker(
+        "nginx",
+        "latest",
+        command = Some(List("ls")),
+        ports = List(80),
+        bindings = Map(80.tcp -> Binding(hostname = Some("0.0.0.0"))),
+        logSink = Some(Kleisli { l =>
+          IO { logs.append((l.logType, l.message))}
+        })
+      )
+    } yield nginx
+    resources
+      .use { _ => IO.unit
+      }
+      .unsafeRunSync()
+    val logsList = logs.toList
+    logsList.map(_._1).head must equal(LogType.StdOut)
+    logsList.map(_._2) must contain("dev\n")
+  }
+
+  "Docker" must "be able to propagate logs to log4j" in {
+    import net.andimiller.whales.syntax._
+    val resources = for {
+      docker <- Docker[IO]
+      nginx  <- docker(
+        "nginx",
+        "latest",
+        command = Some(List("cat", "test")),
+        ports = List(80),
+        bindings = Map(80.tcp -> Binding(hostname = Some("0.0.0.0"))),
+        logSink = Some(Sinks.slf4jSink[IO])
+      )
+    } yield nginx
+    resources
+      .use { _ => IO {
+        println("running body")
+      }
       }
       .unsafeRunSync()
   }
