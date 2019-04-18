@@ -30,6 +30,8 @@ libraryDependencies ++= Seq(
   "org.http4s"     %% "http4s-blaze-server" % http4sVersion % Test,
   "org.http4s"     %% "http4s-dsl"          % http4sVersion % Test,
   "ch.qos.logback" % "logback-classic"      % "1.2.3"       % Test,
+  "org.tpolecat"   %% "doobie-core"         % "0.6.0"       % Test,
+  "mysql"          % "mysql-connector-java" % "8.0.15"      % Test,
 )
 
 libraryDependencies ++= Seq(
