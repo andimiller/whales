@@ -33,17 +33,17 @@ class KafkaSpec extends FlatSpec with MustMatchers {
     ).tupled
       .use {
         case (container, producer, consumer) =>
-          fs2.Stream
-            .emits(data)
-            .covary[IO]
-            .evalTap(s => producer.produce(ProducerMessage.one(ProducerRecord("example_topic", (), s))).flatten.void)
-            .compile
-            .drain *>
-            consumer.subscribeTo("example_topic") *> IO.sleep(2 seconds) *> consumer.stream
-            .take(6)
-            .compile
-            .toList
-            .map(_.map(_.record.value()) must equal(data))
+          for {
+            _ <- consumer.subscribeTo("example_topic")
+            _ <- fs2.Stream
+                  .emits(data)
+                  .covary[IO]
+                  .evalTap(s => producer.produce(ProducerMessage.one(ProducerRecord("example_topic", (), s))).flatten.void)
+                  .compile
+                  .drain
+            _       <- IO.sleep(2 seconds)
+            results <- consumer.stream.take(6).compile.toList.map(_.map(_.record.value()))
+          } yield results must equal(data)
       }
       .unsafeRunSync()
   }
