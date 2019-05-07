@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic"      % "1.2.3"       % Test,
   "org.tpolecat"   %% "doobie-core"         % "0.6.0"       % Test,
   "mysql"          % "mysql-connector-java" % "8.0.15"      % Test,
+  "com.ovoenergy"  %% "fs2-kafka"           % "0.19.9"      % Test,
 )
 
 libraryDependencies ++= Seq(
@@ -71,7 +72,7 @@ micrositePalette := Map(
 )
 
 excludeFilter in ghpagesCleanSite :=
-  new FileFilter{
+  new FileFilter {
     def accept(f: File) = (ghpagesRepository.value / "CNAME").getCanonicalPath == f.getCanonicalPath
   }
 
@@ -82,7 +83,7 @@ useGpg := true
 publishTo := sonatypePublishTo.value
 licenses := Seq("MIT" -> url("https://opensource.org/licenses/MIT"))
 sonatypeProjectHosting := Some(GitHubHosting("andimiller", "whales", "andi at andimiller dot net"))
-developers := List(Developer(id="andimiller", name="Andi Miller", email="andi@andimiller.net", url=url("http://andimiller.net")))
+developers := List(Developer(id = "andimiller", name = "Andi Miller", email = "andi@andimiller.net", url = url("http://andimiller.net")))
 
 import ReleaseTransformations._
 releaseCrossBuild := false
