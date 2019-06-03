@@ -51,7 +51,7 @@ object MySQL {
                   bindings = (if (config.bindToHost) Map(3306.tcp -> Binding(hostname = Some("0.0.0.0"))) else Map.empty) ++ config.baseConfig.bindings
                 )
               )
-      _ <- mysql.waitForPort[F](3306)
+      _ <- mysql.waitForPort[F](3306, backoffs = 8)
     } yield mysql
 
 }
