@@ -16,7 +16,7 @@ object MySQL {
         "mysql",
         "8",
         name = Some("mysql"),
-        ports = List(3306),
+        ports = List(3306)
       ),
       rootPassword: Option[String] = None,
       createDatabase: Option[String] = None,
