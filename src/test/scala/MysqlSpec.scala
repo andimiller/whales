@@ -39,8 +39,6 @@ class MysqlSpec extends FlatSpec with MustMatchers {
           "vetpw"
         )
 
-        Thread.sleep(1000)
-
         listCats.transact(xa).map(_ must equal(List())) *>
           insertCat(Cat("Bob", 4)).transact(xa).map(_ must equal(1)) *>
           listCats.transact(xa).map(_ must equal(List(Cat("Bob", 4))))
