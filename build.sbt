@@ -9,6 +9,13 @@ scalaVersion := "2.13.0"
 
 crossScalaVersions := List("2.12.8", "2.11.12", "2.13.0")
 
+def enablePartialUnification(version: String) = version match {
+  case "2.11" | "2.12" => List("-Ypartial-unification")
+  case "2.13"          => List.empty
+}
+
+scalacOptions ++= enablePartialUnification(scalaBinaryVersion.value)
+
 lazy val catsEffectVersion    = "2.0.0-M4"
 lazy val fs2Version           = "1.1.0-M1"
 lazy val spotifyDockerVersion = "8.14.4"
