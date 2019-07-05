@@ -150,7 +150,6 @@ class DockerSpec extends FlatSpec with MustMatchers {
     resources.use { exited =>
       IO {
         exited.code must equal(0)
-        exited.logs must include("Welcome to nginx!")
       }
     }.unsafeRunSync()
   }
