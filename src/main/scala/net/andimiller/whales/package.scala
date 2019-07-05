@@ -56,7 +56,7 @@ package object whales {
   case class Binding(port: Option[Int] = None, hostname: Option[String] = None)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second, nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
+    def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1.second, nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
       Resource.liftF(
         Docker
           .waitTcp[F](container.networkSettings().ipAddress(), port, backoffs = backoffs, delay = delay, nextDelay = nextDelay)
@@ -69,7 +69,7 @@ package object whales {
           .rethrow
       )
 
-    def waitForExit[F[_]: Sync: Timer](docker: DockerClient[F], backoffs: Int = 5, delay: FiniteDuration = 1 second): Resource[F, ExitedContainer] =
+    def waitForExit[F[_]: Sync: Timer](docker: DockerClient[F], backoffs: Int = 5, delay: FiniteDuration = 1.second): Resource[F, ExitedContainer] =
       Resource.liftF(
         Docker.waitExit[F](docker.docker, container.id(), backoffs, delay)
       )
@@ -95,7 +95,7 @@ package object whales {
       }
 
 
-    private[whales] def waitExit[F[_]: Sync: Timer](docker: DefaultDockerClient, id: String, backoffs: Int = 5, delay: FiniteDuration = 1 second): F[ExitedContainer] =
+    private[whales] def waitExit[F[_]: Sync: Timer](docker: DefaultDockerClient, id: String, backoffs: Int = 5, delay: FiniteDuration = 1.second): F[ExitedContainer] =
       Stream.retry(Sync[F].delay {
         val state = docker.inspectContainer(id).state()
         assert(state.running() == false, s"Container $id still running")
@@ -105,7 +105,7 @@ package object whales {
       .compile
       .lastOrError
 
-    private[whales] def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1 second, nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
+    private[whales] def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1.second, nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
       Stream
         .retry(Sync[F].delay {
           new Socket(host, port)

@@ -48,7 +48,7 @@ object MySQL {
                 config.baseConfig.copy(
                   env = extraEnv ++ config.baseConfig.env,
                   volumes = volume ++ config.baseConfig.volumes,
-                  bindings = (if (config.bindToHost) Map(3306.tcp -> Binding(hostname = Some("0.0.0.0"))) else Map.empty) ++ config.baseConfig.bindings
+                  bindings = ((if (config.bindToHost) Map(3306.tcp -> Binding(hostname = Some("0.0.0.0"))) else Map.empty) ++ config.baseConfig.bindings).toMap
                 )
               )
       _ <- mysql.waitForPort[F](3306, backoffs = 8)

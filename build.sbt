@@ -5,7 +5,7 @@ organization := "net.andimiller"
 
 name := "whales"
 
-scalaVersion := "2.12.8"
+scalaVersion := "2.13.0"
 
 crossScalaVersions := List("2.12.8", "2.11.12", "2.13.0")
 
