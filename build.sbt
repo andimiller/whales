@@ -7,8 +7,6 @@ name := "whales"
 
 scalaVersion := "2.12.8"
 
-scalacOptions += "-Ypartial-unification"
-
 crossScalaVersions := List("2.12.8", "2.11.12", "2.13.0")
 
 lazy val catsEffectVersion    = "2.0.0-M4"
