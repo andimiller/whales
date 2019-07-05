@@ -15,13 +15,13 @@ class KafkaSpec extends FlatSpec with MustMatchers {
   implicit val cs    = IO.contextShift(global)
 
   val consumerSettings =
-    ConsumerSettings[Unit, String]
+    ConsumerSettings[IO, Unit, String]
       .withAutoOffsetReset(AutoOffsetReset.Earliest)
       .withBootstrapServers("localhost:9092")
       .withGroupId("group")
 
   val producerSettings =
-    ProducerSettings[Unit, String]
+    ProducerSettings[IO, Unit, String]
       .withBootstrapServers("localhost:9092")
 
   "the Kafka zoo recipe" should "spin up a single node cluster" in {
@@ -38,11 +38,11 @@ class KafkaSpec extends FlatSpec with MustMatchers {
             _ <- fs2.Stream
                   .emits(data)
                   .covary[IO]
-                  .evalTap(s => producer.produce(ProducerMessage.one(ProducerRecord("example_topic", (), s))).flatten.void)
+                  .evalTap(s => producer.produce(ProducerRecords.one(ProducerRecord("example_topic", (), s))).flatten.void)
                   .compile
                   .drain
             _       <- IO.sleep(2 seconds)
-            results <- consumer.stream.take(6).compile.toList.map(_.map(_.record.value()))
+            results <- consumer.stream.take(6).compile.toList.map(_.map(_.record.value))
           } yield results must equal(data)
       }
       .unsafeRunSync()

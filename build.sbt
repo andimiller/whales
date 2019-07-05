@@ -9,10 +9,10 @@ scalaVersion := "2.12.8"
 
 scalacOptions += "-Ypartial-unification"
 
-crossScalaVersions := List("2.12.8", "2.11.12")
+crossScalaVersions := List("2.12.8", "2.11.12", "2.13.0")
 
-lazy val catsEffectVersion    = "1.2.0"
-lazy val fs2Version           = "1.0.4"
+lazy val catsEffectVersion    = "2.0.0-M4"
+lazy val fs2Version           = "1.1.0-M1"
 lazy val spotifyDockerVersion = "8.14.4"
 
 libraryDependencies ++= Seq(
@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "com.spotify"   % "docker-client" % spotifyDockerVersion,
 )
 
-lazy val http4sVersion = "0.20.0-M1"
+lazy val http4sVersion = "0.21.0-M1"
 
 libraryDependencies ++= Seq(
   "org.scalatest"  %% "scalatest"           % "3.0.5"       % Test,
@@ -32,7 +32,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic"      % "1.2.3"       % Test,
   "org.tpolecat"   %% "doobie-core"         % "0.6.0"       % Test,
   "mysql"          % "mysql-connector-java" % "8.0.15"      % Test,
-  "com.ovoenergy"  %% "fs2-kafka"           % "0.19.9"      % Test,
+  "com.ovoenergy"  %% "fs2-kafka"           % "0.20.0-M1"   % Test,
 )
 
 libraryDependencies ++= Seq(
