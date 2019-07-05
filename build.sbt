@@ -25,12 +25,12 @@ libraryDependencies ++= Seq(
 lazy val http4sVersion = "0.21.0-M1"
 
 libraryDependencies ++= Seq(
-  "org.scalatest"  %% "scalatest"           % "3.0.5"       % Test,
+  "org.scalatest"  %% "scalatest"           % "3.0.8"       % Test,
   "org.http4s"     %% "http4s-blaze-client" % http4sVersion % Test,
   "org.http4s"     %% "http4s-blaze-server" % http4sVersion % Test,
   "org.http4s"     %% "http4s-dsl"          % http4sVersion % Test,
   "ch.qos.logback" % "logback-classic"      % "1.2.3"       % Test,
-  "org.tpolecat"   %% "doobie-core"         % "0.6.0"       % Test,
+  "org.tpolecat"   %% "doobie-core"         % "0.8.0-M1"    % Test,
   "mysql"          % "mysql-connector-java" % "8.0.15"      % Test,
   "com.ovoenergy"  %% "fs2-kafka"           % "0.20.0-M1"   % Test,
 )
