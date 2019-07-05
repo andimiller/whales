@@ -54,6 +54,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
     val resources = for {
       docker <- Docker[IO]
       nginx  <- docker(DockerImage("nginx", "latest", volumes = Map(webroot -> "/usr/share/nginx/html")))
+      _      <- nginx.waitForPort[IO](80)
       client <- BlazeClientBuilder[IO](ExecutionContext.global).resource
     } yield (client, nginx)
     resources
