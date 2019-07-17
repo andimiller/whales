@@ -147,11 +147,13 @@ class DockerSpec extends FlatSpec with MustMatchers {
       curl   <- docker("appropriate/curl", "latest", network = Some(test1.id()), command = Some(List("-s", "http://nginx1/")))
       exited <- curl.waitForExit(docker)
     } yield exited
-    resources.use { exited =>
-      IO {
-        exited.code must equal(0)
+    resources
+      .use { exited =>
+        IO {
+          exited.code must equal(0)
+        }
       }
-    }.unsafeRunSync()
+      .unsafeRunSync()
   }
 
   "Docker" must "be able to expose ports on the host" in {
@@ -182,6 +184,25 @@ class DockerSpec extends FlatSpec with MustMatchers {
       .use {
         case n =>
           IO { n.ports.get(80.tcp) must not be empty }
+      }
+      .unsafeRunSync()
+  }
+
+  "Docker" must "be able to create volumes" in {
+    val resources = for {
+      docker  <- Docker[IO]
+      volume  <- docker.volume("whales-storage")
+      creater <- docker("busybox", "latest", command = Some(List("touch", "/volume/hello")), volumes = Map(volume.name() -> "/volume"))
+      _       <- creater.waitForExit(docker)
+      reader  <- docker("busybox", "latest", command = Some(List("ls", "/volume/")), volumes = Map(volume.name() -> "/volume"))
+      output  <- reader.waitForExit(docker)
+    } yield output
+    resources
+      .use { output =>
+        IO {
+          output.code must equal(0L)
+          output.logs must include("hello")
+        }
       }
       .unsafeRunSync()
   }

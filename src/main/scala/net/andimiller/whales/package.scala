@@ -9,7 +9,7 @@ import cats.data._
 import cats.effect._
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.DockerClient.LogsParam
-import com.spotify.docker.client.exceptions.ImageNotFoundException
+import com.spotify.docker.client.exceptions.{DockerException, ImageNotFoundException}
 import com.spotify.docker.client.messages.ContainerConfig.NetworkingConfig
 import com.spotify.docker.client.messages._
 import fs2._
@@ -48,7 +48,7 @@ package object whales {
     def fromString(s: String): Option[Port] = s match {
       case s1 if s1.endsWith("/tcp") => Some(TCP(Integer.parseInt(s.stripSuffix("/tcp"))))
       case s1 if s1.endsWith("/udp") => Some(UDP(Integer.parseInt(s.stripSuffix("/udp"))))
-      case _ => None
+      case _                         => None
     }
     def fromStringUnsafe(s: String): Port = fromString(s).get
   }
@@ -56,20 +56,26 @@ package object whales {
   case class Binding(port: Option[Int] = None, hostname: Option[String] = None)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_]: Sync: Timer](port: Int, backoffs: Int = 5, delay: FiniteDuration = 1.second, nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
+    def waitForPort[F[_]: Sync: Timer](port: Int,
+                                       backoffs: Int = 5,
+                                       delay: FiniteDuration = 1.second,
+                                       nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
       Resource.liftF(
         Docker
           .waitTcp[F](container.networkSettings().ipAddress(), port, backoffs = backoffs, delay = delay, nextDelay = nextDelay)
           .attemptT
           .recover {
             case e: ConnectException =>
-              throw new ConnectException(s"Unable to connect to ${creation.image}:${creation.version} (${creation.name}) on port $port: ${e.getMessage}")
+              throw new ConnectException(
+                s"Unable to connect to ${creation.image}:${creation.version} (${creation.name}) on port $port: ${e.getMessage}")
           }
           .value
           .rethrow
       )
 
-    def waitForExit[F[_]: Sync: Timer](docker: DockerClient[F], backoffs: Int = 5, delay: FiniteDuration = 1.second): Resource[F, ExitedContainer] =
+    def waitForExit[F[_]: Sync: Timer](docker: DockerClient[F],
+                                       backoffs: Int = 5,
+                                       delay: FiniteDuration = 1.second): Resource[F, ExitedContainer] =
       Resource.liftF(
         Docker.waitExit[F](docker.docker, container.id(), backoffs, delay)
       )
@@ -77,9 +83,14 @@ package object whales {
     def ipAddress: String = container.networkSettings().ipAddress()
 
     def ports: Map[Port, List[(String, Int)]] =
-      container.networkSettings().ports().asScala.map{
-        case (k, v) => (Port.fromStringUnsafe(k), v.asScala.map(p => (p.hostIp(), Integer.parseInt(p.hostPort()))).toList)
-      }.toMap
+      container
+        .networkSettings()
+        .ports()
+        .asScala
+        .map {
+          case (k, v) => (Port.fromStringUnsafe(k), v.asScala.map(p => (p.hostIp(), Integer.parseInt(p.hostPort()))).toList)
+        }
+        .toMap
   }
 
   object Docker {
@@ -94,18 +105,30 @@ package object whales {
         }
       }
 
+    private[whales] def waitExit[F[_]: Sync: Timer](docker: DefaultDockerClient,
+                                                    id: String,
+                                                    backoffs: Int = 5,
+                                                    delay: FiniteDuration = 1.second): F[ExitedContainer] =
+      Stream
+        .retry(
+          Sync[F].delay {
+            val state = docker.inspectContainer(id).state()
+            assert(state.running() == false, s"Container $id still running")
+            ExitedContainer(state.exitCode(), docker.logs(id, LogsParam.stdout(), LogsParam.stderr()).readFully())
+          },
+          delay = delay,
+          nextDelay = _ * 2,
+          maxAttempts = backoffs
+        )
+        .take(1)
+        .compile
+        .lastOrError
 
-    private[whales] def waitExit[F[_]: Sync: Timer](docker: DefaultDockerClient, id: String, backoffs: Int = 5, delay: FiniteDuration = 1.second): F[ExitedContainer] =
-      Stream.retry(Sync[F].delay {
-        val state = docker.inspectContainer(id).state()
-        assert(state.running() == false, s"Container $id still running")
-        ExitedContainer(state.exitCode(), docker.logs(id, LogsParam.stdout(), LogsParam.stderr()).readFully())
-      }, delay = delay, nextDelay = _ * 2, maxAttempts = backoffs)
-      .take(1)
-      .compile
-      .lastOrError
-
-    private[whales] def waitTcp[F[_]: Sync: Timer](host: String, port: Int, backoffs: Int = 5, delay: FiniteDuration = 1.second, nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
+    private[whales] def waitTcp[F[_]: Sync: Timer](host: String,
+                                                   port: Int,
+                                                   backoffs: Int = 5,
+                                                   delay: FiniteDuration = 1.second,
+                                                   nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
       Stream
         .retry(Sync[F].delay {
           new Socket(host, port)
@@ -142,16 +165,58 @@ package object whales {
         }
       }
 
+    def volume(name: String)(implicit F: Effect[F]): Resource[F, Volume] =
+      Resource.make(
+        F.delay {
+          val volume = Volume.builder().name(name).build()
+          docker.createVolume(volume)
+        }
+      ) { v =>
+        F.delay {
+          docker.removeVolume(v)
+        }
+      }
+
+    def ensureVolumeExists(name: String)(implicit F: Effect[F]): Resource[F, Volume] =
+      Resource
+        .make(
+          F.delay {
+            try {
+              false -> docker.inspectVolume(name)
+            } catch {
+              case _: DockerException =>
+                val volume = Volume.builder().name(name).build()
+                true -> docker.createVolume(volume)
+            }
+          }
+        ) {
+          case (cleanup, v) =>
+            cleanup
+              .pure[F]
+              .ifM(
+                F.delay {
+                  docker.removeVolume(v)
+                },
+                F.unit
+              )
+        }
+        .map(_._2)
+
     def apply(image: DockerImage)(implicit F: Effect[F]): Resource[F, DockerContainer] =
       Resource.make(
         F.delay {
-          val bindings = image.bindings.map { case (k, v) =>
-            (k.toString, List(PortBinding.of(v.hostname.getOrElse(""), v.port.map(_.toString).getOrElse(""))).asJava)
-          }.toMap.asJava
+          val bindings = image.bindings
+            .map {
+              case (k, v) =>
+                (k.toString, List(PortBinding.of(v.hostname.getOrElse(""), v.port.map(_.toString).getOrElse(""))).asJava)
+            }
+            .toMap
+            .asJava
           val container = ContainerConfig
             .builder()
             .hostConfig(
-              HostConfig.builder()
+              HostConfig
+                .builder()
                 .appendBinds(image.volumes.map { case (k, v) => s"$k:$v" }.asJava)
                 .networkMode("bridge")
                 .portBindings(bindings)
@@ -162,12 +227,13 @@ package object whales {
             .env(image.env.map { case (k, v) => s"$k=$v" }.toList.asJava)
 
           val withCommand = image.command.foldLeft(container)((c, s) => c.cmd(s.asJava))
-          val imageName = image.image + ":" + image.version
+          val imageName   = image.image + ":" + image.version
           if (image.alwaysPull) {
             docker.pull(imageName)
           } else {
-            Try { docker.inspectImage(imageName) }.recover { case _: ImageNotFoundException =>
-              docker.pull(imageName)
+            Try { docker.inspectImage(imageName) }.recover {
+              case _: ImageNotFoundException =>
+                docker.pull(imageName)
             }
           }
           val creation = image.name match {
