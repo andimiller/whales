@@ -27,7 +27,7 @@ libraryDependencies ++= Seq(
   "com.spotify"   % "docker-client" % spotifyDockerVersion,
 )
 
-lazy val http4sVersion = "0.21.0-M1"
+lazy val http4sVersion = "0.21.0-M4"
 
 libraryDependencies ++= Seq(
   "org.scalatest"  %% "scalatest"           % "3.0.8"       % Test,
