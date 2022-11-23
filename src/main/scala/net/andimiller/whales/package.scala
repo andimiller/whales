@@ -2,15 +2,12 @@ package net.andimiller
 
 import java.net.{ConnectException, Socket}
 
-import cats._
+import cats.ApplicativeError
 import cats.implicits._
-import cats.syntax._
-import cats.data._
 import cats.effect._
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.DockerClient.LogsParam
 import com.spotify.docker.client.exceptions.{DockerException, ImageNotFoundException}
-import com.spotify.docker.client.messages.ContainerConfig.NetworkingConfig
 import com.spotify.docker.client.messages._
 import fs2._
 
@@ -94,7 +91,7 @@ package object whales {
   }
 
   object Docker {
-    private[whales] def client[F[_]](implicit F: Effect[F]): Resource[F, DefaultDockerClient] =
+    private[whales] def client[F[_]](implicit F: Async[F]): Resource[F, DefaultDockerClient] =
       Resource.make(
         F.delay {
           DefaultDockerClient.fromEnv().build()
@@ -111,7 +108,7 @@ package object whales {
                                                     delay: FiniteDuration = 1.second): F[ExitedContainer] =
       Stream
         .retry(
-          Sync[F].delay {
+          Sync[F].interruptible {
             val state = docker.inspectContainer(id).state()
             assert(state.running() == false, s"Container $id still running")
             ExitedContainer(state.exitCode(), docker.logs(id, LogsParam.stdout(), LogsParam.stderr()).readFully())
@@ -130,13 +127,13 @@ package object whales {
                                                    delay: FiniteDuration = 1.second,
                                                    nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
       Stream
-        .retry(Sync[F].delay {
+        .retry(Sync[F].interruptible { // explicitly a Sync[F].delay
           new Socket(host, port)
         }, delay = delay, nextDelay = nextDelay, maxAttempts = backoffs)
         .compile
         .drain
 
-    def apply[F[_]]: Resource[F, DockerClient[F]] = client[F].map(c => DockerClient[F](c))
+    def apply[F[_]: Async]: Resource[F, DockerClient[F]] = client[F].map(c => DockerClient[F](c))
   }
 
   case class DockerClient[F[_]](docker: DefaultDockerClient) {
@@ -150,10 +147,10 @@ package object whales {
               env: Map[String, String] = Map.empty,
               volumes: Map[String, String] = Map.empty,
               bindings: Map[Port, Binding] = Map.empty,
-              alwaysPull: Boolean = false)(implicit F: Effect[F]): Resource[F, DockerContainer] =
+              alwaysPull: Boolean = false)(implicit F: Async[F]): Resource[F, DockerContainer] =
       apply(DockerImage(image, version, name, network, command, ports, env, volumes, bindings, alwaysPull))
 
-    def network(name: String)(implicit F: Effect[F]): Resource[F, NetworkCreation] =
+    def network(name: String)(implicit F: Async[F]): Resource[F, NetworkCreation] =
       Resource.make(
         F.delay {
           val network = NetworkConfig.builder().name(name).build()
@@ -165,7 +162,7 @@ package object whales {
         }
       }
 
-    def volume(name: String)(implicit F: Effect[F]): Resource[F, Volume] =
+    def volume(name: String)(implicit F: Async[F]): Resource[F, Volume] =
       Resource.make(
         F.delay {
           val volume = Volume.builder().name(name).build()
@@ -177,7 +174,7 @@ package object whales {
         }
       }
 
-    def ensureVolumeExists(name: String)(implicit F: Effect[F]): Resource[F, Volume] =
+    def ensureVolumeExists(name: String)(implicit F: Async[F]): Resource[F, Volume] =
       Resource
         .make(
           F.delay {
@@ -202,7 +199,7 @@ package object whales {
         }
         .map(_._2)
 
-    def apply(image: DockerImage)(implicit F: Effect[F]): Resource[F, DockerContainer] =
+    def apply(image: DockerImage)(implicit F: Async[F]): Resource[F, DockerContainer] =
       Resource.make(
         F.delay {
           val bindings = image.bindings
@@ -210,7 +207,6 @@ package object whales {
               case (k, v) =>
                 (k.toString, List(PortBinding.of(v.hostname.getOrElse(""), v.port.map(_.toString).getOrElse(""))).asJava)
             }
-            .toMap
             .asJava
           val container = ContainerConfig
             .builder()
