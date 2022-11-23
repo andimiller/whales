@@ -1,15 +1,10 @@
 import java.io.File
 import java.util.concurrent.{Executor, ExecutorService, Executors}
-
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.io._
-import cats._
-import cats.implicits._
-import cats.data._
 import cats.effect._
-import cats.effect.implicits._
-import cats.effect.internals.IOContextShift
+import cats.effect.unsafe.IORuntime
 import net.andimiller.whales._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.util.CaseInsensitiveString
@@ -30,10 +25,7 @@ class DockerSpec extends FlatSpec with MustMatchers {
     })
 
   implicit val is = Sync[IO]
-
-  implicit val cs    = IO.contextShift(ExecutionContext.global)
-  implicit val ce    = ConcurrentEffect[IO]
-  implicit val timer = IO.timer(ExecutionContext.global)
+  implicit val runtime = IORuntime.builder().build()
 
   "Docker" must "successfully spin up nginx" in {
     val resources = for {
