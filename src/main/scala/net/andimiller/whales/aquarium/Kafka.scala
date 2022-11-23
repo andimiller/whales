@@ -1,15 +1,15 @@
 package net.andimiller.whales.aquarium
 
 import cats._
+import cats.effect.{Resource, Temporal}
 import cats.implicits._
-import cats.effect._
 import net.andimiller.whales._
 import net.andimiller.whales.syntax._
 
 import scala.concurrent.duration._
 
 object Kafka {
-  def singleNode[F[_]: Effect: Timer](topics: List[String]): Resource[F, DockerContainer] =
+  def singleNode[F[_]: Temporal](topics: List[String]): Resource[F, DockerContainer] =
     for {
       docker <- Docker[F]
       zookeeper <- docker(

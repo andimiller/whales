@@ -56,11 +56,11 @@ package object whales {
   case class Binding(port: Option[Int] = None, hostname: Option[String] = None)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_]: Sync: Timer](port: Int,
+    def waitForPort[F[_]: Sync: Temporal](port: Int,
                                        backoffs: Int = 5,
                                        delay: FiniteDuration = 1.second,
                                        nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
-      Resource.liftF(
+      Resource.eval(
         Docker
           .waitTcp[F](container.networkSettings().ipAddress(), port, backoffs = backoffs, delay = delay, nextDelay = nextDelay)
           .attemptT
@@ -73,10 +73,10 @@ package object whales {
           .rethrow
       )
 
-    def waitForExit[F[_]: Sync: Timer](docker: DockerClient[F],
+    def waitForExit[F[_]: Sync: Temporal](docker: DockerClient[F],
                                        backoffs: Int = 5,
                                        delay: FiniteDuration = 1.second): Resource[F, ExitedContainer] =
-      Resource.liftF(
+      Resource.eval(
         Docker.waitExit[F](docker.docker, container.id(), backoffs, delay)
       )
 
@@ -105,7 +105,7 @@ package object whales {
         }
       }
 
-    private[whales] def waitExit[F[_]: Sync: Timer](docker: DefaultDockerClient,
+    private[whales] def waitExit[F[_]: Sync: Temporal](docker: DefaultDockerClient,
                                                     id: String,
                                                     backoffs: Int = 5,
                                                     delay: FiniteDuration = 1.second): F[ExitedContainer] =
@@ -124,7 +124,7 @@ package object whales {
         .compile
         .lastOrError
 
-    private[whales] def waitTcp[F[_]: Sync: Timer](host: String,
+    private[whales] def waitTcp[F[_]: Sync: Temporal](host: String,
                                                    port: Int,
                                                    backoffs: Int = 5,
                                                    delay: FiniteDuration = 1.second,
@@ -136,7 +136,7 @@ package object whales {
         .compile
         .drain
 
-    def apply[F[_]: Effect]: Resource[F, DockerClient[F]] = client[F].map(c => DockerClient[F](c))
+    def apply[F[_]]: Resource[F, DockerClient[F]] = client[F].map(c => DockerClient[F](c))
   }
 
   case class DockerClient[F[_]](docker: DefaultDockerClient) {
