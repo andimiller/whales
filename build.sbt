@@ -14,10 +14,14 @@ def enablePartialUnification(version: String) = version match {
   case "2.13"          => List.empty
 }
 
+scalacOptions ++= Seq(
+  "-language:higherKinds",
+)
+
 scalacOptions ++= enablePartialUnification(scalaBinaryVersion.value)
 
 lazy val catsEffectVersion    = "3.3.14"
-lazy val fs2Version           = "3.2.14"
+lazy val fs2Version           = "3.4.0"
 lazy val spotifyDockerVersion = "8.14.4"
 
 libraryDependencies ++= Seq(

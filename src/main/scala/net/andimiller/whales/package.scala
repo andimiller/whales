@@ -1,8 +1,6 @@
 package net.andimiller
 
 import java.net.{ConnectException, Socket}
-
-import cats.ApplicativeError
 import cats.implicits._
 import cats.effect._
 import com.spotify.docker.client.DefaultDockerClient
@@ -12,7 +10,7 @@ import com.spotify.docker.client.messages._
 import fs2._
 
 import scala.concurrent.duration._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 package object whales {
@@ -53,7 +51,7 @@ package object whales {
   case class Binding(port: Option[Int] = None, hostname: Option[String] = None)
 
   case class DockerContainer(creation: DockerImage, container: ContainerInfo) {
-    def waitForPort[F[_]: Sync: Temporal](port: Int,
+    def waitForPort[F[_]: Async: Sync: Temporal](port: Int,
                                        backoffs: Int = 5,
                                        delay: FiniteDuration = 1.second,
                                        nextDelay: FiniteDuration => FiniteDuration = _ * 2): Resource[F, Unit] =
@@ -70,7 +68,7 @@ package object whales {
           .rethrow
       )
 
-    def waitForExit[F[_]: Sync: Temporal](docker: DockerClient[F],
+    def waitForExit[F[_]: Async: Sync: Temporal](docker: DockerClient[F],
                                        backoffs: Int = 5,
                                        delay: FiniteDuration = 1.second): Resource[F, ExitedContainer] =
       Resource.eval(
@@ -102,13 +100,13 @@ package object whales {
         }
       }
 
-    private[whales] def waitExit[F[_]: Sync: Temporal](docker: DefaultDockerClient,
+    private[whales] def waitExit[F[_]: Async: Sync: Temporal](docker: DefaultDockerClient,
                                                     id: String,
                                                     backoffs: Int = 5,
                                                     delay: FiniteDuration = 1.second): F[ExitedContainer] =
       Stream
         .retry(
-          Sync[F].interruptible {
+          Sync[F].delay {
             val state = docker.inspectContainer(id).state()
             assert(state.running() == false, s"Container $id still running")
             ExitedContainer(state.exitCode(), docker.logs(id, LogsParam.stdout(), LogsParam.stderr()).readFully())
@@ -121,13 +119,13 @@ package object whales {
         .compile
         .lastOrError
 
-    private[whales] def waitTcp[F[_]: Sync: Temporal](host: String,
+    private[whales] def waitTcp[F[_]: Async: Sync: Temporal](host: String,
                                                    port: Int,
                                                    backoffs: Int = 5,
                                                    delay: FiniteDuration = 1.second,
                                                    nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
       Stream
-        .retry(Sync[F].interruptible { // explicitly a Sync[F].delay
+        .retry(Sync[F].delay {
           new Socket(host, port)
         }, delay = delay, nextDelay = nextDelay, maxAttempts = backoffs)
         .compile
