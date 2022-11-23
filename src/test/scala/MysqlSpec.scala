@@ -1,7 +1,7 @@
 import java.io.File
 import java.nio.file.Path
-
 import cats._
+import cats.effect.unsafe.IORuntime
 import implicits._
 import effect._
 import doobie._
@@ -15,8 +15,7 @@ import scala.concurrent.ExecutionContext.global
 
 class MysqlSpec extends FlatSpec with MustMatchers {
 
-  implicit val timer = IO.timer(global)
-  implicit val cs    = IO.contextShift(global)
+  implicit val runtime = IORuntime.builder().build()
 
   case class Cat(name: String, age: Int)
   def insertCat(c: Cat) = sql"insert into cat values(${c.name}, ${c.age})".update.run

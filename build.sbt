@@ -31,17 +31,17 @@ libraryDependencies ++= Seq(
   "com.spotify"   % "docker-client" % spotifyDockerVersion,
 )
 
-lazy val http4sVersion = "0.23.11"
+lazy val  http4sVersion = "0.23.11"
 
 libraryDependencies ++= Seq(
-  "org.scalatest"  %% "scalatest"           % "3.0.8"       % Test,
-  "org.http4s"     %% "http4s-blaze-client" % http4sVersion % Test,
-  "org.http4s"     %% "http4s-blaze-server" % http4sVersion % Test,
-  "org.http4s"     %% "http4s-dsl"          % http4sVersion % Test,
-  "ch.qos.logback" % "logback-classic"      % "1.2.3"       % Test,
-  "org.tpolecat"   %% "doobie-core"         % "0.8.0-M1"    % Test,
-  "mysql"          % "mysql-connector-java" % "8.0.15"      % Test,
-  "com.ovoenergy"  %% "fs2-kafka"           % "0.20.0-M1"   % Test,
+  "org.scalatest"   %% "scalatest"           % "3.0.8"       % Test,
+  "org.http4s"      %% "http4s-blaze-client" % http4sVersion % Test,
+  "org.http4s"      %% "http4s-blaze-server" % http4sVersion % Test,
+  "org.http4s"      %% "http4s-dsl"          % http4sVersion % Test,
+  "ch.qos.logback"  %  "logback-classic"     % "1.2.3"       % Test,
+  "org.tpolecat"    %% "doobie-core"         % "1.0.0-RC2"   % Test,
+  "mysql"           % "mysql-connector-java" % "8.0.15"      % Test,
+  "com.github.fd4s" %% "fs2-kafka"           % "3.0.0-M9"    % Test,
 )
 
 //libraryDependencies ++= Seq(

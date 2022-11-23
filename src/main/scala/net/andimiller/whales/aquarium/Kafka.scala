@@ -19,7 +19,7 @@ object Kafka {
                   )
       _ <- zookeeper.waitForPort[F](2181, delay = 100.millis, backoffs = 10)
       kafka <- docker(
-                "andimiller/kafka",
+                "confluentinc/cp-kafka",
                 "latest",
                 name = "kafka".some,
                 bindings = Map(9092.tcp -> Binding(port = Option(9092))),

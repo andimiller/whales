@@ -1,6 +1,7 @@
 import cats._
 import cats.implicits._
 import cats.effect._
+import cats.effect.unsafe.IORuntime
 import fs2.kafka._
 import net.andimiller.whales._
 import net.andimiller.whales.aquarium
@@ -8,11 +9,9 @@ import net.andimiller.whales.syntax._
 import org.scalatest.{FlatSpec, MustMatchers}
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.global
 
 class KafkaSpec extends FlatSpec with MustMatchers {
-  implicit val timer = IO.timer(global)
-  implicit val cs    = IO.contextShift(global)
+  implicit val runtime = IORuntime.builder().build()
 
   val consumerSettings =
     ConsumerSettings[IO, Unit, String]
@@ -28,8 +27,8 @@ class KafkaSpec extends FlatSpec with MustMatchers {
     val data = List("hello", "world", "have", "a", "few", "messages")
     (
       aquarium.Kafka.singleNode[IO](List("example_topic")),
-      producerResource[IO, Unit, String](producerSettings),
-      consumerResource[IO, Unit, String](consumerSettings)
+      KafkaProducer.resource[IO, Unit, String](producerSettings),
+      KafkaConsumer.resource[IO, Unit, String](consumerSettings)
     ).tupled
       .use {
         case (container, producer, consumer) =>
