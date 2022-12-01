@@ -1,15 +1,15 @@
 package net.andimiller.whales.aquarium
 
 import cats._
+import cats.effect.{Async, Resource, Sync, Temporal}
 import cats.implicits._
-import cats.effect._
 import net.andimiller.whales._
 import net.andimiller.whales.syntax._
 
 import scala.concurrent.duration._
 
 object Kafka {
-  def singleNode[F[_]: Effect: Timer](topics: List[String]): Resource[F, DockerContainer] =
+  def singleNode[F[_]: Async: Sync: Temporal](topics: List[String]): Resource[F, DockerContainer] =
     for {
       docker <- Docker[F]
       zookeeper <- docker(
@@ -19,7 +19,7 @@ object Kafka {
                   )
       _ <- zookeeper.waitForPort[F](2181, delay = 100.millis, backoffs = 10)
       kafka <- docker(
-                "andimiller/kafka",
+                "confluentinc/cp-kafka",
                 "latest",
                 name = "kafka".some,
                 bindings = Map(9092.tcp -> Binding(port = Option(9092))),

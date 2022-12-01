@@ -32,7 +32,7 @@ object MySQL {
     def withBindToHost: MySQLConfiguration                     = copy(bindToHost = true)
   }
 
-  def v8[F[_]: Effect: Timer](config: MySQLConfiguration): Resource[F, DockerContainer] =
+  def v8[F[_]: Async: Temporal](config: MySQLConfiguration): Resource[F, DockerContainer] =
     for {
       docker <- Docker[F]
       extraEnv = List(
