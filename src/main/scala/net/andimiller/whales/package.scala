@@ -106,7 +106,7 @@ package object whales {
                                                     delay: FiniteDuration = 1.second): F[ExitedContainer] =
       Stream
         .retry(
-          Sync[F].delay {
+          Sync[F].interruptible {
             val state = docker.inspectContainer(id).state()
             assert(state.running() == false, s"Container $id still running")
             ExitedContainer(state.exitCode(), docker.logs(id, LogsParam.stdout(), LogsParam.stderr()).readFully())
@@ -125,7 +125,7 @@ package object whales {
                                                    delay: FiniteDuration = 1.second,
                                                    nextDelay: FiniteDuration => FiniteDuration): F[Unit] =
       Stream
-        .retry(Sync[F].delay {
+        .retry(Sync[F].interruptible {
           new Socket(host, port)
         }, delay = delay, nextDelay = nextDelay, maxAttempts = backoffs)
         .compile
